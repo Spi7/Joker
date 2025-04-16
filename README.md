@@ -1,7 +1,4 @@
-<!-- for docker setup -->
-This is the initial Docker setup for team Joker
-
-Please make sure Docker and Docker Compose are installed
+Install Docker and Docker Compose 
 
 To start:
 
