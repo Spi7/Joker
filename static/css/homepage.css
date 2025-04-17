@@ -1,0 +1,146 @@
+/* Background */
+body {
+    margin: 0;
+    padding: 0;
+    font-family: 'Segoe UI', sans-serif;
+    background-image: url('../image/Background.jpg');
+    background-size: cover;
+    background-position: center;
+    min-height: 100vh;
+    color: #fff;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  /* Title */
+  .game-title {
+    font-size: 3.5rem;
+    margin-top: 4rem;
+    margin-bottom: 2rem;
+    font-weight: bold;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.4);
+    letter-spacing: 0.1em;
+  }
+  
+  /* Music Toggle */
+  .music-toggle {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    padding: 0.5rem 1rem;
+    background-color: #facc15;
+    border: none;
+    border-radius: 2rem;
+    font-weight: bold;
+    color: #222;
+    cursor: pointer;
+    box-shadow: 0 3px 10px rgba(0,0,0,0.2);
+  }
+  
+  /* Buttons */
+  .button-row {
+    display: flex;
+    gap: 2rem;
+    margin-bottom: 3rem;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+  
+  .jelly-button {
+    width: 16rem;
+    height: 6rem;
+    font-size: 1.5rem;
+    font-weight: bold;
+    border-radius: 9999px;
+    border: 3px solid rgba(255, 255, 255, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: white;
+    box-shadow:
+      inset 0 1px 3px rgba(255, 255, 255, 0.6),
+      0 8px 15px rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease-in-out;
+  }
+  .jelly-button:hover {
+    transform: scale(1.05);
+    box-shadow:
+      inset 0 1px 4px rgba(255,255,255,0.7),
+      0 0 15px rgba(255,255,255,0.2),
+      0 8px 20px rgba(0,0,0,0.25);
+  }
+  .jelly-button:active {
+    transform: scale(0.95);
+  }
+  .green {
+    background: linear-gradient(to bottom, #86efac, #4ade80, #22c55e);
+  }
+  .blue {
+    background: linear-gradient(to bottom, #93c5fd, #60a5fa, #3b82f6);
+  }
+  
+  /* Room List */
+  .room-list {
+    background-color: rgba(255, 255, 255, 0.8);
+    color: #222;
+    width: 90%;
+    max-width: 960px;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    box-shadow: 0 12px 30px rgba(0,0,0,0.3);
+    backdrop-filter: blur(4px);
+  }
+  
+  .room-list h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+  }
+  
+  .room-scroll {
+    max-height: 400px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+  }
+  .room-card {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #fef3c7;
+    padding: 1rem 1.5rem;
+    margin-bottom: 1rem;
+    border-radius: 1rem;
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.6), 0 5px 12px rgba(0,0,0,0.1);
+  }
+  .room-info {
+    color: #92400e;
+  }
+  .room-name {
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+  .room-players {
+    font-size: 0.9rem;
+    color: #78350f;
+  }
+  .join-btn {
+    background-color: #a78bfa;
+    color: white;
+    padding: 0.6rem 1.25rem;
+    border-radius: 9999px;
+    text-decoration: none;
+    font-weight: bold;
+    box-shadow: 0 3px 8px rgba(0,0,0,0.2);
+    transition: transform 0.15s ease;
+  }
+  .join-btn:hover {
+    transform: scale(1.05);
+  }
+  .no-room {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 1rem;
+  }
+  
