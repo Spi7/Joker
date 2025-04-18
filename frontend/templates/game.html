@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Landlord</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+</head>
+<body>
+  <div id="game-container">
+    <div class="top-bar">{{ room_name }}</div>
+
+    <div class="profile bottom-left">You</div>
+    <div class="profile left-seat">Player 1</div>
+    <div class="profile right-seat">Player 2</div>
+  </div>
+
+  <div class="ready-button-container">
+    <button class="ready-button">Ready?</button>
+  </div>
+
+</body>
+</html>
