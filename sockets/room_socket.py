@@ -29,3 +29,6 @@ def register_room_handlers(socketio):
             "room_name": room_name,
             "players": rooms[room_id]
         }, room=request.sid)
+
+
+    # @socketio.on("get_all_rooms")
