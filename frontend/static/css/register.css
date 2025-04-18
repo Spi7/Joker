@@ -1,0 +1,139 @@
+body {
+    font-family: 'Roboto', sans-serif;
+    background-color: #0a5c36;
+    color: #fff;
+    margin: 0;
+    padding: 0;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-image: radial-gradient(circle, #0a5c36, #083c24);
+}
+
+.card-table {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 800px;
+    position: relative;
+}
+
+.register-container {
+    background-color: #fff;
+    padding: 30px;
+    border-radius: 15px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+    width: 350px;
+    text-align: center;
+    color: #333;
+    z-index: 1;
+}
+
+.poker-card {
+    width: 100px;
+    height: 150px;
+    background: #fff;
+    border-radius: 10px;
+    position: absolute;
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 32px;
+    font-weight: bold;
+    color: #333;
+}
+
+.card-left {
+    left: 0;
+    transform: rotate(-15deg);
+    background: linear-gradient(135deg, #fff, #f5f5f5);
+}
+
+.card-right {
+    right: 0;
+    transform: rotate(15deg);
+    background: linear-gradient(135deg, #fff, #f5f5f5);
+}
+
+.card-icon {
+    font-size: 28px;
+    margin: 15px 0;
+    color: #d32f2f;
+    letter-spacing: 8px;
+}
+
+h2 {
+    color: #d32f2f;
+    margin-bottom: 10px;
+    font-weight: 700;
+}
+
+.form-group {
+    margin-bottom: 20px;
+    text-align: left;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 8px;
+    font-weight: 500;
+    color: #555;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 12px;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    font-size: 16px;
+    transition: border 0.3s;
+    box-sizing: border-box;
+}
+
+.form-group input:focus {
+    border-color: #d32f2f;
+    outline: none;
+}
+
+.btn {
+    width: 100%;
+    padding: 12px;
+    background-color: #d32f2f;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 16px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.btn:hover {
+    background-color: #b71c1c;
+}
+
+.flash-messages {
+    color: #d32f2f;
+    margin: 15px 0;
+    font-size: 14px;
+}
+
+.link-text {
+    margin-top: 20px;
+    color: #666;
+    font-size: 14px;
+}
+
+.link-text a {
+    color: #d32f2f;
+    text-decoration: none;
+    font-weight: 500;
+}
+
+.link-text a:hover {
+    text-decoration: underline;
+}

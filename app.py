@@ -1,22 +1,18 @@
-from flask import Flask
-from Back_End.Profile import GetMatch,GetUserInfo,ChangeIcon
-app = Flask(__name__)
+from flask import Flask, render_template, session, redirect, url_for
+from auth import auth_bp
+import os
+
+app = Flask(__name__, static_folder='frontend/static', template_folder='frontend/templates')
+app.secret_key = os.environ.get('SECRET_KEY', 'dev_key_replace_in_production')
+
+# Register the auth blueprint
+app.register_blueprint(auth_bp, url_prefix="/auth")
 
 @app.route("/")
-
-# Use python -m pip install -r requirements.txt to get start
-
 def home():
-    return "Hello World!"
+    if "username" in session:
+        return f"Welcome, {session['username']}!"
+    return redirect(url_for("auth.login"))
 
-@app.route("/GetUserInfo",methods = ["GET"])
-def GetUserInfoPath():
-    return GetUserInfo()
-
-@app.route("/ChangeIcon",methods = ["POST"])
-def ChangeIconPath():
-    return ChangeIcon()
-
-@app.route("/GetMatch",methods = ["GET"])
-def GetMatchPath():
-    return GetMatch()
+if __name__ == "__main__":
+    app.run(host="0.0.0.0", port=8080)
