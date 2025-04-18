@@ -1,0 +1,45 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Dou dizhu - Register</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/register.css') }}">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div class="card-table">
+        <div class="poker-card card-left">Q♣</div>
+        <div class="register-container">
+            <h2>Join Dou dizhu</h2>
+            <div class="card-icon">♠ ♥ ♣ ♦</div>
+
+            {% if get_flashed_messages() %}
+            <div class="flash-messages">
+                {% for message in get_flashed_messages() %}
+                    <p>{{ message }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <form method="POST">
+                <div class="form-group">
+                    <label for="username">Username:</label>
+                    <input type="text" id="username" name="username" required placeholder="Choose a username">
+                </div>
+                <div class="form-group">
+                    <label for="password">Password:</label>
+                    <input type="password" id="password" name="password" required placeholder="Create a password">
+                </div>
+                <div class="form-group">
+                    <label for="confirm_password">Confirm Password:</label>
+                    <input type="password" id="confirm_password" name="confirm_password" required placeholder="Confirm your password">
+                </div>
+                <div class="form-group">
+                    <input type="submit" class="btn" value="Register & Play">
+                </div>
+            </form>
+            <p class="link-text">Already have an account? <a href="{{ url_for('auth.login') }}">Login here</a></p>
+        </div>
+        <div class="poker-card card-right">J♦</div>
+    </div>
+</body>
+</html>
