@@ -46,6 +46,19 @@ body {
     flex-wrap: wrap;
     justify-content: center;
   }
+
+  .single-center {
+    justify-content: center;
+  }
+  
+  .large-btn {
+    width: 20rem;
+    height: 7rem;
+    font-size: 1.75rem;
+    box-shadow:
+      inset 0 2px 4px rgba(255, 255, 255, 0.6),
+      0 10px 20px rgba(0, 0, 0, 0.25);
+  }
   
   .jelly-button {
     width: 16rem;
