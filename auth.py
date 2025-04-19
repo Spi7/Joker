@@ -25,6 +25,28 @@ def register():
     if request.method == "POST":
         username = request.form["username"]
         password = request.form["password"]
+        confirm_password = request.form["confirm_password"]
+
+        #rules of password
+        if len(password) < 8:
+            flash("Password must be at least 8 characters long")
+            return redirect(url_for("auth.register"))
+
+        if not any(char.isdigit() for char in password):
+            flash("Password must contain at least one number")
+            return redirect(url_for("auth.register"))
+
+        if not any(char.isupper() for char in password):
+            flash("Password must contain at least one uppercase letter")
+            return redirect(url_for("auth.register"))
+
+        if not any(char.islower() for char in password):
+            flash("Password must contain at least one lowercase letter")
+            return redirect(url_for("auth.register"))
+
+        if password != confirm_password:
+            flash("Passwords do not match")
+            return redirect(url_for("auth.register"))
 
         if UserInfo.find_one({"username": username}):
             flash("Username already exists")
