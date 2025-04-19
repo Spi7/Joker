@@ -1,11 +1,14 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from flask_socketio import SocketIO
 from logging.handlers import RotatingFileHandler
+from auth import auth_bp
 
 import logging
 import os
 
 app = Flask(__name__, static_folder="frontend/static", template_folder="frontend/templates")
+app.register_blueprint(auth_bp)
+app.secret_key = os.environ.get('SECRET_KEY') or 'dev_key_only_for_development'
 socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
 #later for production
 # socketio = SocketIO(app, cors_allowed_origins=["https://yourdomain.com"])
@@ -39,7 +42,9 @@ def ping():
 # Use python -m pip install -r requirements.txt to get start
 @app.route("/")
 def home():
-    return "Hello World!"
+    if "username" not in session:
+        return redirect(url_for("auth.login"))
+    return redirect(url_for("homepage"))
 
 @app.route("/game")
 def game():
