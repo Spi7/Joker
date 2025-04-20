@@ -38,11 +38,29 @@
           <a href="/join-room/{{ room.id }}" class="join-btn">Join</a>
         </div>
       {% endfor %}
-      {% if rooms|length == 0 %}
-        <p class="no-room">No rooms available. Be the first to create one!</p>
-      {% endif %}
+{#      {% if rooms|length == 0 %}#}
+{#        <p class="no-room">No rooms available. Be the first to create one!</p>#}
+{#      {% endif %}#}
     </div>
   </div>
+
+{# Pop up modal for max room capacity message #}
+ <div id="modal-overlay" class="modal-overlay hidden">
+     <div class="room-card modal-box">
+         <div class="room-info">
+             <p class="room-name">Room is full!!!</p>
+             <p class="room-players">
+                 This room already has 3 players. Please join another room!
+             </p>
+         </div>
+         <button id="close-modal" class="join-btn">OK</button>
+     </div>
+ </div>
+
+
+ <script>
+   sessionStorage.setItem("username", "{{ username }}");
+ </script>
 
 </body>
 </html>

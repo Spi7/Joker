@@ -54,7 +54,8 @@ def game():
 
 @app.route("/homepage")
 def homepage():
-    return render_template("homepage.html", rooms=[])
+    username = session.get("username")
+    return render_template("homepage.html", rooms=[], username=username)
 
 
 if __name__ == "__main__":
