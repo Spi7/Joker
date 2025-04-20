@@ -1,38 +1,70 @@
 // 1. Establish connection with the WebSocket server
 const socket = io(); // automatically uses WebSocket upgrade
 
-// 2. Emit "create_room" when a button is clicked
-document.addEventListener("DOMContentLoaded", () => {
+async function fetchCurrentUserOrRedirect() {
+  try {
+    const res = await fetch("/api/users/@me");
+    if (!res.ok) throw new Error("Not authenticated");
+    return await res.json();
+  } catch (err) {
+    console.error("Session invalid:", err);
+    window.location.href = "/login";
+  }
+}
 
+// 2. Emit "create_room" when a button is clicked
+document.addEventListener("DOMContentLoaded", async() => {
+
+  let userInfo = await fetchCurrentUserOrRedirect() //check auth
+  if (!userInfo) {
+    return;
+  }
   //Create room listening
   const createRoomBtn = document.getElementById("create-room-btn");
   socket.emit("get_all_rooms"); //send a message to backend asking for the room list
 
-  createRoomBtn?.addEventListener("click", () => {
-    const userId = sessionStorage.getItem("user_id") || sessionStorage.getItem("username");
+  createRoomBtn?.addEventListener("click", async() => {
     const roomName = prompt("Enter room name:");
     if (!roomName) return;
 
+    let currentUser = await fetchCurrentUserOrRedirect() //check auth
+    if (!userInfo) {
+      return;
+    }
+
     socket.emit("create_room", {
-      user_id: userId,
+      user_id: currentUser.user_id,
+      username: currentUser.username,
       room_name: roomName
     });
-
     console.log("create_room emitted!");
   });
 
   //Join room listening
-  document.addEventListener("click", (e) => {
-    if (e.target.matches(".join-btn")) {
-      const roomId = e.target.dataset.roomId;
-      const roomName = e.target.dataset.roomName;
-      const userId = sessionStorage.getItem("user_id") || sessionStorage.getItem("username");
-
-      socket.emit("join_room", {
-        user_id: userId,
-        room_id: roomId
-      })
+  document.addEventListener("click", async(e) => {
+    const joinBtn = e.target.closest(".join-btn");
+    if (!joinBtn) return;
+    // Check if this is the modal OK button
+    if (joinBtn?.id === "close-modal") {
+      const modal = document.getElementById("modal-overlay");
+      modal.classList.add("hidden");
+      window.location.href = "/homepage";
+      return;
     }
+
+    const roomId = joinBtn.dataset.roomId;
+    const roomName = joinBtn.dataset.roomName;
+
+    let currentUser = await fetchCurrentUserOrRedirect() //check auth
+    if (!userInfo) {
+      return;
+    }
+
+    socket.emit("join_room", {
+      user_id: currentUser.user_id,
+      username: currentUser.username,
+      room_id: roomId
+    });
   })
 
   //==============================================================================================================================

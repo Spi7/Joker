@@ -77,52 +77,58 @@ def login():
             hash_token = hashlib.sha256(auth_token.encode()).hexdigest()
             token_expire = datetime.utcnow() + timedelta(days=1)
 
-            UserInfo.update_one({"username": username}, {"$set": {"auth_token": hash_token, "token_expire": token_expire}})
 
-            session["username"] = username
-            session["auth_token"] = auth_token
-            return redirect(url_for("home"))
+            UserInfo.update_one({"username": username}, {"$set": {
+                "auth_token": hash_token,
+                "token_expire": token_expire,
+            }})
+
+            response = redirect(url_for("home"))
+            response.set_cookie(
+                "auth_token", auth_token,
+                httponly=True,
+                secure=False,  # False for localhost, True in production!!!!!!!!!!!
+                samesite='Lax',
+                max_age=60 * 60 * 24  # 1 day
+            )
+            return response
         else:
             flash("Username or password is incorrect")
             return redirect(url_for("auth.login"))
 
     return render_template("login.html")
 
+
 @auth_bp.route("/logout")
 def logout():
-    username = session.get("username")
-    if username:
-        UserInfo.update_one({"username": username}, {"$set": {"auth_token": ""}})
-        session.pop("username", None)
-        session.pop("auth_token", None)
-    return redirect(url_for("auth.login"))
+    auth_token = request.cookies.get("auth_token")
+    if auth_token:
+        # Invalidate server-side session
+        UserInfo.update_one(
+            {"auth_token": hashlib.sha256(auth_token.encode()).hexdigest()},
+            {"$unset": {"auth_token": ""}}
+        )
+
+    response = redirect(url_for("auth.login"))
+    response.set_cookie("auth_token", "", expires=0)
+    return response
 
 
 def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if "username" not in session or "auth_token" not in session:
+        auth_token = request.cookies.get("auth_token")
+        if not auth_token:
             return redirect(url_for("auth.login"))
 
-        username = session["username"]
-        provided_token = session["auth_token"]
-        hash_token = hashlib.sha256(provided_token.encode()).hexdigest()
-
-        user = UserInfo.find_one({"username": username, "auth_token": hash_token})
-
+        user = UserInfo.find_one({"auth_token": auth_token})
         if not user or "token_expire" not in user:
-            session.pop("username", None)
-            session.pop("auth_token", None)
             return redirect(url_for("auth.login"))
 
-        # 检查token是否过期
         if datetime.utcnow() > user["token_expire"]:
-            session.pop("username", None)
-            session.pop("auth_token", None)
             return redirect(url_for("auth.login"))
 
         return f(*args, **kwargs)
-
     return decorated_function
 
 __all__ = ['auth_bp', 'token_required']
