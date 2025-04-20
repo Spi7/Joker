@@ -75,7 +75,7 @@ def login():
         if user and verify_password(user["password"], password):
             auth_token = str(uuid.uuid4())
             hash_token = hashlib.sha256(auth_token.encode()).hexdigest()
-            token_expire = datetime.utcnow() + timedelta(seconds=15)
+            token_expire = datetime.utcnow() + timedelta(days=1)
 
             UserInfo.update_one({"username": username}, {"$set": {"auth_token": hash_token, "token_expire": token_expire}})
 
