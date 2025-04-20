@@ -3,6 +3,9 @@ from flask import Blueprint, request, redirect, render_template, session, url_fo
 from Database import UserInfo
 import hashlib
 import os
+import uuid
+from datetime import datetime, timedelta
+from functools import wraps
 
 auth_bp = Blueprint("auth", __name__, template_folder="frontend/templates")
 
@@ -52,9 +55,11 @@ def register():
             flash("Username already exists")
             return redirect(url_for("auth.register"))
 
+        user_id = str(uuid.uuid4())
+
         # Hash the password before storing
         hashed_password = hash_password(password)
-        UserInfo.insert_one({"username": username, "password": hashed_password})
+        UserInfo.insert_one({"username": username, "password": hashed_password, "user_id": user_id})
         flash("Signup successful, please log in")
         return redirect(url_for("auth.login"))
 
@@ -68,6 +73,11 @@ def login():
 
         user = UserInfo.find_one({"username": username})
         if user and verify_password(user["password"], password):
+            auth_token = str(uuid.uuid4())
+            token_expire = datetime.utcnow() + timedelta(days=1)
+
+            UserInfo.update_one({"username": username}, {"$set": {"auth_token": auth_token, "token_expire": token_expire}})
+
             session["username"] = username
             return redirect(url_for("home"))
         else:
@@ -78,5 +88,32 @@ def login():
 
 @auth_bp.route("/logout")
 def logout():
-    session.pop("username", None)
+    username = session.get("username")
+    if username:
+        UserInfo.update_one({"username": username}, {"$set": {"auth_token": ""}})
+        session.pop("username", None)
     return redirect(url_for("auth.login"))
+
+
+def token_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if "username" not in session:
+            return redirect(url_for("auth.login"))
+
+        username = session["username"]
+        user = UserInfo.find_one({"username": username})
+
+        if not user or "token_expire" not in user:
+            return redirect(url_for("auth.login"))
+
+        # 检查token是否过期
+        if datetime.utcnow() > user["token_expire"]:
+            session.pop("username", None)
+            return redirect(url_for("auth.login"))
+
+        return f(*args, **kwargs)
+
+    return decorated_function
+
+__all__ = ['auth_bp', 'token_required']

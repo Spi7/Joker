@@ -1,7 +1,7 @@
 from flask import Flask, request, jsonify, render_template, redirect, url_for, session
 from flask_socketio import SocketIO
 from logging.handlers import RotatingFileHandler
-from auth import auth_bp
+from auth import auth_bp, token_required
 
 import logging
 import os
