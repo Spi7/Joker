@@ -1,5 +1,5 @@
 document.addEventListener("DOMContentLoaded", async () => {
-  const authToken = sessionStorage.getItem("token");
+  const authToken = sessionStorage.getItem("auth_token");
   // if (!authToken) {
   //   window.location.href = "/Login";
   //   return;
@@ -40,7 +40,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // Fetch user info
     const userInfoRes = await fetch("/GetUserInfo",{method: "GET"});
     const userInfo = await userInfoRes.json();
-    document.getElementById("username").textContent = userInfo.Username;
+    document.getElementById("username").textContent = userInfo.username;
     document.getElementById("matches-played").textContent = userInfo.MatchPlayed;
     document.getElementById("matches-won").textContent = userInfo.MatchWin;
     document.querySelector(".profile-avatar").src = userInfo.ImgUrl;
