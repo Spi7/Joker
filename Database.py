@@ -17,3 +17,4 @@ db = mongo_client["Joker"]
 
 UserInfo = db["UserInfo"]
 MatchHistory = db["MatchHistory"]
+RoomCollection = db["Rooms"]
