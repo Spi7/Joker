@@ -9,14 +9,17 @@
   <div id="game-container">
     <div class="top-bar">{{ room_name }}</div>
 
-    <div class="profile bottom-left">You</div>
-    <div class="profile left-seat">Player 1</div>
-    <div class="profile right-seat">Player 2</div>
+    <div class="profile bottom-left">Empty</div>
+    <div class="profile left-seat">Empty</div>
+    <div class="profile right-seat">Empty</div>
   </div>
 
   <div class="ready-button-container">
     <button class="ready-button">Ready?</button>
   </div>
+
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+  <script src="{{ url_for('static', filename='js/gamepage.js') }}"></script>
 
 </body>
 </html>
