@@ -4,13 +4,15 @@ import hashlib
 from pymongo.synchronous.database import Database
 
 from Database import UserInfo,MatchHistory
-
+game_blueprint = Blueprint('game', __name__, url_prefix="/api/game")
+@game_blueprint.route("/GetUserInfo",methods = ["GET"])
 def GetUserInfo():
     auth_token = request.headers.get("auth_token")
     hash_token = hashlib.sha256(auth_token.encode()).hexdigest()
     userinfo = UserInfo.find_one({"auth_token": hash_token}, {"_id": 0})  # Exclude _id from response
     return jsonify(userinfo)
 
+@game_blueprint.route("/ChangeIcon",methods = ["POST"])
 def ChangeIcon():
     MIME_TYPES = {
         "image/jpeg": ".jpg",
@@ -27,6 +29,7 @@ def ChangeIcon():
     UserInfo.update_one({"user_id": userid}, {"$set": {"ImgUrl": path}})
     return jsonify({"ImageUrl": path})
 
+@game_blueprint.route("/GetMatch",methods = ["GET"])
 def GetMatch():
     auth_token = request.headers.get("auth_token")
     hash_token = hashlib.sha256(auth_token.encode()).hexdigest()
