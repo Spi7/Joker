@@ -74,11 +74,13 @@ def login():
         user = UserInfo.find_one({"username": username})
         if user and verify_password(user["password"], password):
             auth_token = str(uuid.uuid4())
+            hash_token = hashlib.sha256(auth_token.encode()).hexdigest()
             token_expire = datetime.utcnow() + timedelta(days=1)
 
-            UserInfo.update_one({"username": username}, {"$set": {"auth_token": auth_token, "token_expire": token_expire}})
+            UserInfo.update_one({"username": username}, {"$set": {"auth_token": hash_token, "token_expire": token_expire}})
 
             session["username"] = username
+            session["auth_token"] = auth_token
             return redirect(url_for("home"))
         else:
             flash("Username or password is incorrect")
@@ -92,24 +94,31 @@ def logout():
     if username:
         UserInfo.update_one({"username": username}, {"$set": {"auth_token": ""}})
         session.pop("username", None)
+        session.pop("auth_token", None)
     return redirect(url_for("auth.login"))
 
 
 def token_required(f):
     @wraps(f)
     def decorated_function(*args, **kwargs):
-        if "username" not in session:
+        if "username" not in session or "auth_token" not in session:
             return redirect(url_for("auth.login"))
 
         username = session["username"]
-        user = UserInfo.find_one({"username": username})
+        provided_token = session["auth_token"]
+        hash_token = hashlib.sha256(provided_token.encode()).hexdigest()
+
+        user = UserInfo.find_one({"username": username, "auth_token": hash_token})
 
         if not user or "token_expire" not in user:
+            session.pop("username", None)
+            session.pop("auth_token", None)
             return redirect(url_for("auth.login"))
 
         # 检查token是否过期
         if datetime.utcnow() > user["token_expire"]:
             session.pop("username", None)
+            session.pop("auth_token", None)
             return redirect(url_for("auth.login"))
 
         return f(*args, **kwargs)
