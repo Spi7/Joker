@@ -1,10 +1,24 @@
+async function fetchCurrentUserOrRedirect() {
+  try {
+    const res = await fetch("/api/users/@me");
+    if (!res.ok) throw new Error("Not authenticated");
+    return await res.json();
+  } catch (err) {
+    console.error("Session invalid:", err);
+    window.location.href = "/login";
+  }
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
-  const authToken = sessionStorage.getItem("auth_token");
-  // if (!authToken) {
-  //   window.location.href = "/Login";
-  //   return;
-  // }
-  // Avatar edit logic
+  const backButton = document.getElementById("go-home");
+  backButton.addEventListener("click", () => {
+    window.location.href = "/homepage";
+  });
+
+  let userInfo = await fetchCurrentUserOrRedirect() //check auth
+  if (!userInfo) {
+    return;
+  }
   const editBtn = document.getElementById("edit-avatar-btn");
   const uploadInput = document.getElementById("avatar-upload");
 
@@ -20,7 +34,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     formData.append("avatar", file);
 
     try {
-      const res = await fetch(`/ChangeIcon`, {
+      const res = await fetch(`/api/profile/ChangeIcon`, {
         method: "POST",
         body: formData
       });
@@ -38,7 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   try {
     // Fetch user info
-    const userInfoRes = await fetch("/GetUserInfo",{method: "GET"});
+    const userInfoRes = await fetch("/api/profile/GetUserInfo",{method: "GET"});
     const userInfo = await userInfoRes.json();
     document.getElementById("username").textContent = userInfo.username;
     document.getElementById("matches-played").textContent = userInfo.MatchPlayed;
@@ -46,7 +60,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.querySelector(".profile-avatar").src = userInfo.ImgUrl;
 
     // Fetch match history
-    const matchResponse = await fetch(`/GetMatch`,{method:"GET"});
+    const matchResponse = await fetch(`/api/profile/GetMatch`,{method:"GET"});
     const matchJson = await matchResponse.json();
     const matchData = matchJson.Match;
 

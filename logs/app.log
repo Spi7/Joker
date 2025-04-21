@@ -4,3 +4,343 @@
 2025-04-18 00:17:45,671 - INFO - Request: 172.20.0.1 GET /ping
 2025-04-18 02:15:45,514 - INFO - Request: 172.20.0.1 GET /ping
 2025-04-18 02:17:13,171 - INFO - Request: 172.20.0.1 GET /ping
+2025-04-20 20:01:55,111 - ERROR - Exception on /api/profile/GetUserInfo [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 11, in GetUserInfo
+    hash_token = hashlib.sha256(auth_token.encode()).hexdigest()
+                                ^^^^^^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'encode'
+2025-04-20 20:04:21,721 - ERROR - Exception on /api/profile/GetUserInfo [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 13, in GetUserInfo
+    return jsonify(userinfo)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\__init__.py", line 342, in jsonify
+    return current_app.json.response(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 309, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=mimetype
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 230, in dumps
+    return json.dumps(obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 122, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type bytes is not JSON serializable
+2025-04-20 20:04:23,723 - ERROR - Exception on /api/profile/GetUserInfo [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 13, in GetUserInfo
+    return jsonify(userinfo)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\__init__.py", line 342, in jsonify
+    return current_app.json.response(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 309, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=mimetype
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 230, in dumps
+    return json.dumps(obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 122, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type bytes is not JSON serializable
+2025-04-20 20:13:56,068 - ERROR - Exception on /api/profile/GetUserInfo [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 14, in GetUserInfo
+    return jsonify(userinfo)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\__init__.py", line 342, in jsonify
+    return current_app.json.response(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 309, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=mimetype
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 230, in dumps
+    return json.dumps(obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 122, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type bytes is not JSON serializable
+2025-04-20 20:14:47,572 - ERROR - Exception on /api/profile/GetMatch [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 39, in GetMatch
+    return jsonify({"Match": MatchH_History})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\__init__.py", line 342, in jsonify
+    return current_app.json.response(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 309, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=mimetype
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 230, in dumps
+    return json.dumps(obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 122, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type Cursor is not JSON serializable
+2025-04-20 20:19:22,253 - ERROR - Exception on /api/profile/GetMatch [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 39, in GetMatch
+    return jsonify({"Match": MatchH_History})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\__init__.py", line 342, in jsonify
+    return current_app.json.response(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 309, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=mimetype
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 230, in dumps
+    return json.dumps(obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 122, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type Cursor is not JSON serializable
+2025-04-20 20:19:55,928 - ERROR - Exception on /api/profile/GetMatch [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 39, in GetMatch
+    return jsonify({"Match": MatchH_History})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\__init__.py", line 342, in jsonify
+    return current_app.json.response(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 309, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=mimetype
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 230, in dumps
+    return json.dumps(obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 122, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type Cursor is not JSON serializable
+2025-04-20 20:20:14,383 - ERROR - Exception on /api/profile/GetMatch [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 39, in GetMatch
+    return jsonify({"Match": MatchH_History})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\__init__.py", line 342, in jsonify
+    return current_app.json.response(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 309, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=mimetype
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 230, in dumps
+    return json.dumps(obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 122, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type Cursor is not JSON serializable
+2025-04-20 20:22:43,067 - ERROR - Exception on /api/profile/GetMatch [GET]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 40, in GetMatch
+    return jsonify({"Match": MatchH_History})
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\__init__.py", line 342, in jsonify
+    return current_app.json.response(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 309, in response
+    f"{self.dumps(obj, **dump_args)}\n", mimetype=mimetype
+       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 230, in dumps
+    return json.dumps(obj, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\__init__.py", line 238, in dumps
+    **kw).encode(obj)
+          ^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 200, in encode
+    chunks = self.iterencode(o, _one_shot=True)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\AppData\Local\Programs\Python\Python312\Lib\json\encoder.py", line 258, in iterencode
+    return _iterencode(o, 0)
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\json\provider.py", line 122, in _default
+    raise TypeError(f"Object of type {type(o).__name__} is not JSON serializable")
+TypeError: Object of type Cursor is not JSON serializable
+2025-04-20 20:34:25,159 - ERROR - Exception on /api/profile/ChangeIcon [POST]
+Traceback (most recent call last):
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 2529, in wsgi_app
+    response = self.full_dispatch_request()
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1825, in full_dispatch_request
+    rv = self.handle_user_exception(e)
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1823, in full_dispatch_request
+    rv = self.dispatch_request()
+         ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\Downloads\fa24-semesterproject-sugarmen-from-sugartown-main\venv\Lib\site-packages\flask\app.py", line 1799, in dispatch_request
+    return self.ensure_sync(self.view_functions[rule.endpoint])(**view_args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\enhui\PycharmProjects\Joker\routes\Profile.py", line 28, in ChangeIcon
+    path = prefixpath + userid + MIME_TYPES[types]
+                                 ~~~~~~~~~~^^^^^^^
+KeyError: 'multipart/form-data; boundary=----WebKitFormBoundaryrC6aMf6zr6FU7cer'
