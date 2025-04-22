@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Dou Dizhu Lobby</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}" />
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dou Dizhu Lobby</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}" />
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="{{ url_for('static', filename='js/homepage.js') }}" defer></script>
-</head>
+    <script src="{{ url_for('static', filename='js/homepage.js') }}" defer></script>
+    </head>
 <body>
 
   <!-- 🔊 Music -->
@@ -16,6 +17,14 @@
   <button id="music-toggle" onclick="toggleMusic()" class="music-toggle">
     🎵 Music On
   </button>
+
+  <!-- Profile -->
+  <div class="profile-container">
+      <div id="profile-bar" class="profile-bar">
+          <img id="profile-avatar" src="{{ url_for('static', filename="images/Icon/defaultIcon.png") }}" alt="Avatar" class="profile-icon">
+          <span id="profile-username" class="profile-username">Loading...</span>
+      </div>
+  </div>
 
   <!-- 🎴 Title -->
   <h1 class="game-title">Landlord 🎴</h1>
