@@ -55,8 +55,9 @@ document.addEventListener("DOMContentLoaded", async() => {
     const roomId = joinBtn.dataset.roomId;
     const roomName = joinBtn.dataset.roomName;
 
+    // userInfo = await fetchCurrentUserOrRedirect()
     let currentUser = await fetchCurrentUserOrRedirect() //check auth
-    if (!userInfo) {
+    if (!currentUser) {
       return;
     }
 
@@ -131,6 +132,53 @@ document.addEventListener("DOMContentLoaded", async() => {
     const encodedRoomName = encodeURIComponent(data.room_name);
     window.location.href = `/game?room_id=${data.room_id}&room_name=${encodedRoomName}`;
   })
+
+  //update the room players on HOMEPAGE when the user in the room left
+  socket.on("room_updated", (data) => {
+  const roomlist = document.querySelector(".room-scroll");
+
+  // Find the matching room card
+  const existingCard = [...roomlist.children].find(card =>
+    card.querySelector(".join-btn")?.dataset.roomId === data.room_id
+  );
+
+  if (existingCard) {
+    existingCard.querySelector(".room-players").textContent = `Players: ${data.players.length}/3`;
+  }
+});
+
+  //delete a room when there's no players in the room
+  socket.on("room_deleted", (data) => {
+    const roomlist = document.querySelector(".room-scroll");
+
+    const toRemove = [...roomlist.children].find(card =>
+      card.querySelector(".join-btn")?.dataset.roomId === data.room_id
+    );
+
+    if (toRemove) {
+      roomlist.removeChild(toRemove);
+    }
+
+    // ✅ Now check again ONLY for .room-card elements
+    const remainingCards = roomlist.querySelectorAll(".room-card");
+    let noRoomMsg = roomlist.querySelector(".no-room");
+
+    if (remainingCards.length === 0) {
+      if (!noRoomMsg) {
+        noRoomMsg = document.createElement("p");
+        noRoomMsg.className = "no-room";
+        noRoomMsg.textContent = "No rooms available. Be the first to create one!";
+        roomlist.appendChild(noRoomMsg);
+      }
+    } else {
+      if (noRoomMsg) {
+        noRoomMsg.remove();
+      }
+    }
+  });
+
+
+
 
   //error redirect / message
   socket.on("error", (err) => {

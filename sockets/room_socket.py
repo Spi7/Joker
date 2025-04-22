@@ -4,7 +4,7 @@ from flask_socketio import emit, join_room
 from Database import RoomCollection, UserInfo
 
 #map {sid: {user_id, room_id}, ...}
-users_in_room = {}
+users_in_room = {} #check if safe
 
 def register_room_handlers(socketio):
     print("register_room_handlers called")
@@ -33,7 +33,21 @@ def register_room_handlers(socketio):
         if not updated_room:
             return
 
-        # ✅ Build user_map safely
+        remaining_players = updated_room.get("players", [])
+
+        if len(remaining_players) == 0:
+            #prevent race condition
+            result = RoomCollection.delete_one({"room_id": room_id, "players": []})
+
+            if result.deleted_count > 0:
+                emit("room_deleted", {"room_id": room_id}, broadcast=True)
+
+                # Emit updated room list to all clients
+                all_rooms = list(RoomCollection.find({}, {"_id": 0}))
+                emit("all_rooms", all_rooms, broadcast=True)
+            return
+
+            # Build user_map safely
         user_map = {}
         for pid in updated_room.get("players", []):
             try:
@@ -52,6 +66,12 @@ def register_room_handlers(socketio):
             "players": updated_room["players"],
             "user_map": user_map
         }, room=room_id)
+
+        emit("room_updated", {
+            "room_id": room_id,
+            "room_name": updated_room["room_name"],
+            "players": updated_room["players"]
+        }, broadcast=True)
 
     @socketio.on("create_room")
     def create_room(data):
@@ -192,6 +212,13 @@ def register_room_handlers(socketio):
                 "players": updated_room["players"],
                 "user_map": user_map
             }, room=room_id, include_self=False)
+
+            # #notify everyone in the homepage on increase player count
+            emit("room_updated", {
+                "room_id": updated_room["room_id"],
+                "room_name": updated_room["room_name"],
+                "players": updated_room["players"]
+            }, broadcast=True)
 
         except Exception as e:
             print(f"Error in handle_join_room: {str(e)}")
