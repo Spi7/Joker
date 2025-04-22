@@ -1,4 +1,11 @@
 /* Core Layout */
+
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
 body {
   margin: 0;
   padding: 0;
@@ -49,7 +56,7 @@ body {
   display: grid;
   grid-template-columns: 1fr 3fr;
   gap: 2rem;
-  min-height: 650px;
+  min-height: 91vh;
 }
 
 @media (max-width: 768px) {

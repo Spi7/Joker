@@ -1,16 +1,16 @@
 /* Background */
 body {
-    margin: 0;
-    padding: 0;
+    min-height: 100vh;
     font-family: 'Segoe UI', sans-serif;
     background-image: url('../images/Background.jpg');
     background-size: cover;
     background-position: center;
-    min-height: 100vh;
+    max-height: 100vh;
     color: #fff;
     display: flex;
     flex-direction: column;
     align-items: center;
+    overflow-y: hidden;
   }
 
   /* Title */
@@ -61,37 +61,35 @@ body {
   }
 
   .jelly-button {
-    width: 16rem;
-    height: 6rem;
-    font-size: 1.5rem;
+    width: 12rem;
+    height: 4.5rem;
+    font-size: 1.25rem;
     font-weight: bold;
     border-radius: 9999px;
-    border: 3px solid rgba(255, 255, 255, 0.3);
+    border: none;
+    background: linear-gradient(to bottom right, #ffdd57, #fbbf24, #f59e0b); /* gold-like gradient */
+    color: #442200;
     display: flex;
     align-items: center;
     justify-content: center;
     text-decoration: none;
-    color: white;
     box-shadow:
-      inset 0 1px 3px rgba(255, 255, 255, 0.6),
-      0 8px 15px rgba(0, 0, 0, 0.2);
+      0 4px 12px rgba(0, 0, 0, 0.25),
+      inset 0 1px 3px rgba(255, 255, 255, 0.7);
     transition: all 0.2s ease-in-out;
   }
+
   .jelly-button:hover {
     transform: scale(1.05);
     box-shadow:
-      inset 0 1px 4px rgba(255,255,255,0.7),
-      0 0 15px rgba(255,255,255,0.2),
-      0 8px 20px rgba(0,0,0,0.25);
+      0 0 20px rgba(255, 223, 77, 0.8),
+      0 6px 18px rgba(0, 0, 0, 0.2),
+      inset 0 2px 4px rgba(255, 255, 255, 0.8);
   }
+
   .jelly-button:active {
-    transform: scale(0.95);
-  }
-  .green {
-    background: linear-gradient(to bottom, #86efac, #4ade80, #22c55e);
-  }
-  .blue {
-    background: linear-gradient(to bottom, #93c5fd, #60a5fa, #3b82f6);
+    transform: scale(0.97);
+    filter: brightness(0.95);
   }
 
   /* Room List */
@@ -99,7 +97,7 @@ body {
     background-color: rgba(255, 255, 255, 0.8);
     color: #222;
     width: 90%;
-    max-width: 960px;
+    max-width: 50%;
     border-radius: 1.5rem;
     padding: 2rem;
     box-shadow: 0 12px 30px rgba(0,0,0,0.3);
@@ -178,4 +176,37 @@ body {
 .hidden {
   display: none;
 }
+
+/* CSS for profile bar */
+.profile-bar {
+  padding: 5px;
+  padding-left: 10px;
+  min-width: 20%;
+  min-height: 10%;
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  display: flex;
+  align-items: center;
+  background-color: white;
+  opacity: 0.85;
+  border-radius: 10px;
+}
+
+.profile-icon {
+  width: 50px;
+  height: 50px;
+  border-radius: 100%;
+  border-style: solid;
+  object-fit: cover;
+}
+
+.profile-username {
+  padding: 15px;
+  font-weight: bold;
+  font-size: 1rem;
+  color: #333;
+  max-width: 100%;
+}
+
 
