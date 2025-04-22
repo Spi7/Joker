@@ -1,10 +1,10 @@
 import uuid
 from flask import request
-from flask_socketio import emit, join_room
+from flask_socketio import emit, join_room, leave_room
 from Database import RoomCollection, UserInfo
 
-#map {sid: {user_id, room_id}, ...}
-users_in_room = {} #check if safe
+# map {sid: {user_id, room_id}, ...}
+users_in_room = {}  # check if safe
 
 def register_room_handlers(socketio):
     print("register_room_handlers called")
@@ -36,7 +36,7 @@ def register_room_handlers(socketio):
         remaining_players = updated_room.get("players", [])
 
         if len(remaining_players) == 0:
-            #prevent race condition
+            # prevent race condition
             result = RoomCollection.delete_one({"room_id": room_id, "players": []})
 
             if result.deleted_count > 0:
@@ -47,7 +47,7 @@ def register_room_handlers(socketio):
                 emit("all_rooms", all_rooms, broadcast=True)
             return
 
-            # Build user_map safely
+        # Build user_map safely
         user_map = {}
         for pid in updated_room.get("players", []):
             try:
@@ -71,7 +71,7 @@ def register_room_handlers(socketio):
             "room_id": room_id,
             "room_name": updated_room["room_name"],
             "players": updated_room["players"]
-        }, broadcast=True)
+        }, room="homepage")  # Changed from broadcast=True to room="homepage"
 
     @socketio.on("create_room")
     def create_room(data):
@@ -111,6 +111,7 @@ def register_room_handlers(socketio):
             print(f"Error in create_room: {str(e)}")
             emit("error", {"message": "Failed to create room"}, room=request.sid)
 
+
     @socketio.on("get_all_rooms")
     def get_all_rooms():
         try:
@@ -118,6 +119,11 @@ def register_room_handlers(socketio):
             emit("all_rooms", all_rooms, room=request.sid)
         except Exception as e:
             emit("error", {"message": "Failed to fetch rooms"}, room=request.sid)
+
+    @socketio.on("join_homepage")  # New handler
+    def handle_join_homepage():
+        print(f"Client {request.sid} joined homepage room")
+        join_room("homepage")
 
     @socketio.on("join_room")
     def handle_join_room(user_data):
@@ -190,7 +196,7 @@ def register_room_handlers(socketio):
             updated_room = RoomCollection.find_one({"room_id": room_id})
             updated_players = updated_room.get("players", [])
 
-            # 👇 Build user_map dynamically
+            # Build user_map dynamically
             user_map = {}
             for player_id in updated_players:
                 user = UserInfo.find_one({"user_id": player_id})
@@ -213,13 +219,19 @@ def register_room_handlers(socketio):
                 "user_map": user_map
             }, room=room_id, include_self=False)
 
-            # #notify everyone in the homepage on increase player count
+            # Notify homepage clients on increase player count
             emit("room_updated", {
                 "room_id": updated_room["room_id"],
                 "room_name": updated_room["room_name"],
                 "players": updated_room["players"]
-            }, broadcast=True)
+            }, room="homepage")  # Changed from broadcast=True to room="homepage"
 
         except Exception as e:
             print(f"Error in handle_join_room: {str(e)}")
             emit("error", {"message": "Failed to join room"}, room=request.sid)
+
+    # leave the homepage room
+    @socketio.on("leave_homepage")
+    def handle_leave_homepage():
+        print(f"Client {request.sid} left homepage room")
+        leave_room("homepage")
