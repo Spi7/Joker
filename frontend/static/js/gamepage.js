@@ -1,5 +1,12 @@
 const socket = io(); // Automatically uses existing WebSocket
 
+let justReloaded = true;
+window.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    justReloaded = false;
+  }, 1200); // 超过1.2秒就不是刷新了
+});
+
 async function fetchCurrentUserOrRedirect() {
   try {
     const res = await fetch("/api/users/@me");
@@ -44,8 +51,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     updatePlayerList(data.players, user.user_id, data.user_map);
   });
 
+  // If user clicks back button (NOT a refresh), inform server
+  window.addEventListener("popstate", async () => {
+    if (justReloaded) return; // 刷新触发的 popstate 忽略
+    const res = await fetch("/api/users/@me");
+    if (res.ok) {
+      const user = await res.json();
+      socket.emit("intentional_leave_room", {
+        user_id: user.user_id
+      });
+    }
+  });
+
   window.addEventListener("beforeunload", () => {
-    socket.disconnect(); // <-- This ensures server runs handle_disconnect()
+    socket.disconnect(); // This ensures server runs handle_disconnect()
   });
 });
 
@@ -67,7 +86,6 @@ function updatePlayerList(players, currentUserId, userMap) {
   const sorted = [...players];
   const youIndex = sorted.indexOf(currentUserId);
 
-  // Move current user to first position if found
   if (youIndex > -1) {
     [sorted[0], sorted[youIndex]] = [sorted[youIndex], sorted[0]];
   }
@@ -79,7 +97,6 @@ function updatePlayerList(players, currentUserId, userMap) {
       : userMap?.[id] || id;
   };
 
-  // Update slots based on sorted players
   sorted.forEach((playerId, index) => {
     if (index === 0) slot1.textContent = displayName(playerId);
     if (index === 1) slot2.textContent = displayName(playerId);

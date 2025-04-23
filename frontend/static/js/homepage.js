@@ -1,4 +1,3 @@
-// 1. Establish connection with the WebSocket server
 const socket = io(); // automatically uses WebSocket upgrade
 
 async function fetchCurrentUserOrRedirect() {
@@ -12,42 +11,52 @@ async function fetchCurrentUserOrRedirect() {
   }
 }
 
-// 2. Emit "create_room" when a button is clicked
-document.addEventListener("DOMContentLoaded", async () => {
-  let userInfo = await fetchCurrentUserOrRedirect(); // check auth
-  if (!userInfo) {
-    return;
+let justNavigatedFromGame = false;
+
+// Detect if user came from /game (i.e., back button used)
+window.addEventListener("pageshow", (event) => {
+  const referrer = document.referrer;
+  if (referrer.includes("/game")) {
+    justNavigatedFromGame = true;
   }
+});
 
-  // Join the homepage room
-  socket.emit("join_homepage"); // New: Join the homepage room
-  socket.emit("get_all_rooms"); // send a message to backend asking for the room list
+document.addEventListener("DOMContentLoaded", async () => {
+  let userInfo = await fetchCurrentUserOrRedirect();
+  if (!userInfo) return;
 
-  // Create room listening
+  socket.emit("join_homepage");
+  socket.emit("get_all_rooms");
+
+  //New: if returned from game, emit intentional_leave_room
+  if (justNavigatedFromGame) {
+    socket.emit("intentional_leave_room", {
+      user_id: userInfo.user_id
+    });
+    justNavigatedFromGame = false; // reset
+  }
+  socket.emit("check_and_cleanup_user", { user_id: userInfo.user_id });
+
+
   const createRoomBtn = document.getElementById("create-room-btn");
-
   createRoomBtn?.addEventListener("click", async () => {
     const roomName = prompt("Enter room name:");
     if (!roomName) return;
 
-    let currentUser = await fetchCurrentUserOrRedirect(); // check auth
-    if (!currentUser) {
-      return;
-    }
+    let currentUser = await fetchCurrentUserOrRedirect();
+    if (!currentUser) return;
 
     socket.emit("create_room", {
       user_id: currentUser.user_id,
       username: currentUser.username,
       room_name: roomName
     });
-    console.log("create_room emitted!");
   });
 
-  // Join room listening
   document.addEventListener("click", async (e) => {
     const joinBtn = e.target.closest(".join-btn");
     if (!joinBtn) return;
-    // Check if this is the modal OK button
+
     if (joinBtn?.id === "close-modal") {
       const modal = document.getElementById("modal-overlay");
       modal.classList.add("hidden");
@@ -58,10 +67,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const roomId = joinBtn.dataset.roomId;
     const roomName = joinBtn.dataset.roomName;
 
-    let currentUser = await fetchCurrentUserOrRedirect(); // check auth
-    if (!currentUser) {
-      return;
-    }
+    let currentUser = await fetchCurrentUserOrRedirect();
+    if (!currentUser) return;
 
     socket.emit("join_room", {
       user_id: currentUser.user_id,
@@ -70,35 +77,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   });
 
-  //==============================================================================================================================
-
-  // create a room, redirect user to the room id
   socket.on("room_created", (data) => {
-    console.log("Room created!", data);
     const encodedRoomName = encodeURIComponent(data.room_name);
     window.location.href = `/game?room_id=${data.room_id}&room_name=${encodedRoomName}`;
   });
 
-  // broadcast new room to everyone WHEN someone create a new room
   socket.on("new_room_broadcast", (data) => {
     const roomlist = document.querySelector(".room-scroll");
-
     const roomCard = document.createElement("div");
     roomCard.className = "room-card";
     roomCard.innerHTML = `
-        <div class="room-info">
-          <p class="room-name">Room Name: ${data.room_name}</p>
-          <p class="room-players">Players: ${data.players.length}/3</p>
-        </div>
-        <button class="join-btn" data-room-id="${data.room_id}" data-room-name="${data.room_name}">
-            Join
-        </button>
-       `;
-
+      <div class="room-info">
+        <p class="room-name">Room Name: ${data.room_name}</p>
+        <p class="room-players">Players: ${data.players.length}/3</p>
+      </div>
+      <button class="join-btn" data-room-id="${data.room_id}" data-room-name="${data.room_name}">
+        Join
+      </button>`;
     roomlist.appendChild(roomCard);
   });
 
-  // broadcast the room list to everyone WHEN on page or REFRESH
   socket.on("all_rooms", (roomList) => {
     const roomScroll = document.querySelector(".room-scroll");
     roomScroll.innerHTML = "";
@@ -114,32 +112,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     roomList.forEach((data) => {
       const roomCard = document.createElement("div");
       roomCard.className = "room-card";
-
       roomCard.innerHTML = `
-          <div class="room-info">
-            <p class="room-name">Room Name: ${data.room_name}</p>
-            <p class="room-players">Players: ${data.players.length}/3</p>
-          </div>
-          <button class="join-btn" data-room-id="${data.room_id}" data-room-name="${data.room_name}">
-            Join
-          </button>
-         `;
+        <div class="room-info">
+          <p class="room-name">Room Name: ${data.room_name}</p>
+          <p class="room-players">Players: ${data.players.length}/3</p>
+        </div>
+        <button class="join-btn" data-room-id="${data.room_id}" data-room-name="${data.room_name}">
+          Join
+        </button>`;
       roomScroll.appendChild(roomCard);
     });
   });
 
-  // redirect to /game when server confirms join, user will leave homepage room
   socket.on("joined_room", (data) => {
-    socket.emit("leave_homepage"); // Emit new event to leave homepage room
+    socket.emit("leave_homepage");
     const encodedRoomName = encodeURIComponent(data.room_name);
     window.location.href = `/game?room_id=${data.room_id}&room_name=${encodedRoomName}`;
   });
 
-  // update the room players on HOMEPAGE when the user in the room left
   socket.on("room_updated", (data) => {
     const roomlist = document.querySelector(".room-scroll");
-
-    // Find the matching room card
     const existingCard = [...roomlist.children].find((card) =>
       card.querySelector(".join-btn")?.dataset.roomId === data.room_id
     );
@@ -149,19 +141,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // delete a room when there's no players in the room
   socket.on("room_deleted", (data) => {
     const roomlist = document.querySelector(".room-scroll");
-
     const toRemove = [...roomlist.children].find((card) =>
       card.querySelector(".join-btn")?.dataset.roomId === data.room_id
     );
+    if (toRemove) roomlist.removeChild(toRemove);
 
-    if (toRemove) {
-      roomlist.removeChild(toRemove);
-    }
-
-    // ✅ Now check again ONLY for .room-card elements
     const remainingCards = roomlist.querySelectorAll(".room-card");
     let noRoomMsg = roomlist.querySelector(".no-room");
 
@@ -179,7 +165,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  // error redirect / message
   socket.on("error", (err) => {
     console.error("SocketIO Error:", err);
     if (err.message === "Room is full") {
