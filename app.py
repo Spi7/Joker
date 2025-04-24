@@ -8,26 +8,14 @@ from Database import UserInfo
 #routes
 from auth import auth_bp, token_required
 from routes.users_routes import user_bp
-from routes.Profile import blueprint
 
 import logging
 import os
 
+
 app = Flask(__name__, static_folder="frontend/static", template_folder="frontend/templates")
 
-#===========================================================
-app.register_blueprint(auth_bp)
-app.register_blueprint(user_bp)
-app.register_blueprint(blueprint)
-
-
-#===========================================================
-
-app.secret_key = os.environ.get('SECRET_KEY') or 'dev_key_only_for_development'
-socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
-#later for production
-# socketio = SocketIO(app, cors_allowed_origins=["https://yourdomain.com"])
-
+#=======================Start of Logging====================================
 # (logs/app.log）
 if not os.path.exists("logs"):
     os.makedirs("logs")
@@ -40,11 +28,28 @@ file_handler.setFormatter(logging.Formatter(
 app.logger.setLevel(logging.INFO)
 app.logger.addHandler(file_handler)
 
+@app.before_request
+def log_request_info():
+    client_ip = request.remote_addr
+    method = request.method
+    path = request.path
+    app.logger.info(f"Request: {client_ip} {method} {path}")
+
+#===================================Blueprint and Auth===========================================
+app.secret_key = os.environ.get('SECRET_KEY') or 'dev_key_only_for_development'
+app.register_blueprint(auth_bp)
+app.register_blueprint(user_bp)
+
+socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
+#later for production
+# socketio = SocketIO(app, cors_allowed_origins=["https://yourdomain.com"])
+
 #room handles
 from sockets.room_socket import register_room_handlers
 register_room_handlers(socketio)
 
 
+#=====================================Routes=======================================
 @app.route("/ping")
 def ping():
     client_ip = request.remote_addr
@@ -68,11 +73,6 @@ def game():
 @app.route("/homepage")
 def homepage():
     return render_template("homepage.html", rooms=[])
-
-@app.route("/profile")
-def profile():
-    return render_template("Profile.html")
-
 
 
 if __name__ == "__main__":
