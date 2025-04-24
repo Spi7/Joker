@@ -38,6 +38,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.emit("check_and_cleanup_user", { user_id: userInfo.user_id });
 
 
+  // Clickable Profile bar
+  document.getElementById("profile-bar")?.addEventListener("click", () => {
+    window.location.href = "/profile";
+  });
+
+  try {
+    const res = await fetch("/api/profile/GetUserInfo", {method: "GET"});
+    const profile = await res.json();
+
+    const avatarElement = document.getElementById("profile-avatar");
+    const usernameElement = document.getElementById("profile-username");
+
+    avatarElement.src = profile.ImgUrl || "/static/images/icon/defaultIcon.png";
+    usernameElement.textContent = profile.username || "Failed to get Username";
+  } catch (err) {
+    console.error("Failed to load profile info: ", err);
+  }
+
+  // Join the homepage room
+  socket.emit("join_homepage"); // New: Join the homepage room
+  socket.emit("get_all_rooms"); // send a message to backend asking for the room list
+
   const createRoomBtn = document.getElementById("create-room-btn");
   createRoomBtn?.addEventListener("click", async () => {
     const roomName = prompt("Enter room name:");
@@ -175,5 +197,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     } else {
       alert("Error: " + (err.message || "Unknown Error"));
     }
+  });
+});
+
+
+  document.getElementById("rules-btn").addEventListener("click", () => {
+    document.getElementById("rules-modal").classList.remove("hidden");
+  });
+  document.getElementById("close-rules").addEventListener("click", () => {
+    document.getElementById("rules-modal").classList.add("hidden");
   });
 });
