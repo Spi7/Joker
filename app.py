@@ -8,6 +8,7 @@ from Database import UserInfo
 #routes
 from auth import auth_bp, token_required
 from routes.users_routes import user_bp
+from routes.Profile import blueprint
 
 import logging
 import os
@@ -17,6 +18,8 @@ app = Flask(__name__, static_folder="frontend/static", template_folder="frontend
 #===========================================================
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(blueprint)
+
 
 #===========================================================
 
@@ -65,6 +68,11 @@ def game():
 @app.route("/homepage")
 def homepage():
     return render_template("homepage.html", rooms=[])
+
+@app.route("/profile")
+def profile():
+    return render_template("Profile.html")
+
 
 
 if __name__ == "__main__":
