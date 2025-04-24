@@ -40,6 +40,9 @@ def register_room_handlers(socketio):
                 return
 
             remaining_players = updated_room.get("players", [])
+            if user_id not in remaining_players and len(remaining_players) > 0:
+                return
+
             if len(remaining_players) == 0:
                 result = RoomCollection.delete_one({"room_id": room_id, "players": []})
                 if result.deleted_count > 0:
@@ -251,45 +254,49 @@ def register_room_handlers(socketio):
         except Exception as e:
             emit("error", {"message": "Failed to join room"}, room=request.sid)
 
-
     @socketio.on("check_and_cleanup_user")
     def check_and_cleanup_user(data):
         user_id = data.get("user_id")
         if not user_id:
             return
 
+        #unnecessary emit, check if this player is in ghost room
         ghost_room = RoomCollection.find_one({"players": user_id})
-        if ghost_room:
-            print(f"[Cleanup] Found ghost user in room {ghost_room['room_id']}")
+        if not ghost_room:
+            return
 
-            # 从房间中移除该用户
-            RoomCollection.update_one(
-                {"room_id": ghost_room["room_id"]},
-                {"$pull": {"players": user_id}}
-            )
+        print(f"[Cleanup] Found ghost user in room {ghost_room['room_id']}")
 
-            updated_room = RoomCollection.find_one({"room_id": ghost_room["room_id"]})
-            if updated_room:
-                remaining = updated_room.get("players", [])
-                user_map = {
-                    pid: UserInfo.find_one({"user_id": pid}).get("username", f"User {pid[:4]}")
-                    for pid in remaining
-                }
+        # remove the user from the room, if it's consider as a ghost user
+        RoomCollection.update_one(
+            {"room_id": ghost_room["room_id"]},
+            {"$pull": {"players": user_id}}
+        )
 
-                emit("player_left", {
-                    "room_id": ghost_room["room_id"],
-                    "user_id": user_id,
-                    "players": remaining,
-                    "user_map": user_map
-                }, room=ghost_room["room_id"])
+        updated_room = RoomCollection.find_one({"room_id": ghost_room["room_id"]})
+        if not updated_room:
+            return
 
-                emit("room_updated", {
-                    "room_id": ghost_room["room_id"],
-                    "room_name": updated_room["room_name"],
-                    "players": remaining
-                }, room="homepage")
+        remaining = updated_room.get("players", [])
+        user_map = {
+            pid: UserInfo.find_one({"user_id": pid}).get("username", f"User {pid[:4]}")
+            for pid in remaining
+        }
 
-                if len(remaining) == 0:
-                    RoomCollection.delete_one({"room_id": ghost_room["room_id"], "players": []})
-                    emit("room_deleted", {"room_id": ghost_room["room_id"]}, broadcast=True)
-                    emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)
+        emit("player_left", {
+            "room_id": ghost_room["room_id"],
+            "user_id": user_id,
+            "players": remaining,
+            "user_map": user_map
+        }, room=ghost_room["room_id"])
+
+        emit("room_updated", {
+            "room_id": ghost_room["room_id"],
+            "room_name": updated_room["room_name"],
+            "players": remaining
+        }, room="homepage")
+
+        if len(remaining) == 0:
+            RoomCollection.delete_one({"room_id": ghost_room["room_id"], "players": []})
+            emit("room_deleted", {"room_id": ghost_room["room_id"]}, broadcast=True)
+            emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)

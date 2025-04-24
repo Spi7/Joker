@@ -63,9 +63,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
   });
 
-  window.addEventListener("beforeunload", () => {
-    socket.disconnect(); // This ensures server runs handle_disconnect()
-  });
 });
 
 //Replace Empty with each user's username when joined
