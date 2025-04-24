@@ -209,4 +209,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Error: " + (err.message || "Unknown Error"));
     }
   });
+
+  document.getElementById("rules-btn").addEventListener("click", () => {
+    document.getElementById("rules-modal").classList.remove("hidden");
+  });
+  document.getElementById("close-rules").addEventListener("click", () => {
+    document.getElementById("rules-modal").classList.add("hidden");
+  });
 });
