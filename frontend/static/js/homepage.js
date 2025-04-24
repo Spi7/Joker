@@ -50,7 +50,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const avatarElement = document.getElementById("profile-avatar");
     const usernameElement = document.getElementById("profile-username");
 
-    avatarElement.src = profile.ImgUrl || "/static/images/icon/defaultIcon.png";
+    avatarElement.src = profile.ImgUrl || "/static/images/defaultIcon.png";
     usernameElement.textContent = profile.username || "Failed to get Username";
   } catch (err) {
     console.error("Failed to load profile info: ", err);
@@ -198,8 +198,6 @@ document.addEventListener("DOMContentLoaded", async () => {
       alert("Error: " + (err.message || "Unknown Error"));
     }
   });
-});
-
 
   document.getElementById("rules-btn").addEventListener("click", () => {
     document.getElementById("rules-modal").classList.remove("hidden");
