@@ -8,6 +8,7 @@ from Database import UserInfo
 #routes
 from auth import auth_bp, token_required
 from routes.users_routes import user_bp
+from routes.Profile import blueprint
 
 import logging
 import os
@@ -39,6 +40,7 @@ def log_request_info():
 app.secret_key = os.environ.get('SECRET_KEY') or 'dev_key_only_for_development'
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
+app.register_blueprint(blueprint)
 
 socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
 #later for production
@@ -73,6 +75,10 @@ def game():
 @app.route("/homepage")
 def homepage():
     return render_template("homepage.html", rooms=[])
+
+@app.route("/profile")
+def profile():
+    return render_template("profile.html")
 
 
 if __name__ == "__main__":
