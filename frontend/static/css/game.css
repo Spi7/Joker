@@ -1,3 +1,9 @@
+#game-container {
+  width: 100%;
+  height: 100vh; /* Full viewport height */
+  position: relative; /* To position players absolutely */
+}
+
 body {
   background-image: url('../images/landlord_bg.png');
   background-size: cover;
@@ -39,31 +45,50 @@ body {
   text-align: center;
   font-weight: bold;
   user-select: none;
+
+  flex-direction: column;
+  margin: 10px;
+}
+
+
+.ready-status {
+  margin-top: 5px;
+  font-size: 14px;
+  color: #555;
 }
 
 .bottom-left {
-  bottom: 2%;
-  left: 2%;
+  position: absolute;
+  bottom: 10%;
+  left: 10%;
 }
 
 .left-seat {
-  top: 40%;
-  left: 2%;
+  position: absolute;
+  top: 50%;
+  left: 1%;
   transform: translateY(-50%);
 }
 
 .right-seat {
-  top: 40%;
-  right: 2%;
+  position: absolute;
+  top: 50%;
+  right: 1%;
   transform: translateY(-50%);
 }
-
 /* ready buttons */
 .ready-button-container {
   position: absolute;
   bottom: 30%;
   left: 50%;
   transform: translateX(-50%);
+}
+.card {
+  width: 50px;
+  height: 70px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .ready-button {
@@ -82,11 +107,213 @@ body {
   background-color: #45a049;
 }
 
+.your-hand {
+  background-color: #f8f9fa;
+  padding: 10px;
+  margin-top: 10px;
+  border: 1px solid #ccc;
+}
 
+.opponent-info {
+  background-color: #ffeeba;
+  margin-top: 5px;
+  padding: 5px;
+}
+.game-ui {
+  padding: 20px;
+  background-color: #fafafa;
+}
+
+.your-hand h3,
+.opponent-info h3 {
+  margin-bottom: 8px;
+  color: #333;
+}
+
+#game-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding-bottom: 40px;
+}
+
+#game-ui-area {
+  margin-top: 20px;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.card-row {
+  position: relative;
+  height: 160px;
+  left: 50%;
+  transform: translateX(-50%);
+
+}
+
+.card {
+  position: absolute;
+  left: calc(var(--i) * 30px);  /* Still stacks from left */
+  top: 0;
+  width: 100px;
+  height: 140px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+  background: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+}
+
+.card:nth-child(n) {
+  left: calc(30px * (var(--i))); /* Adjust overlap spacing */
+}
+
+
+.card img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover; /* Completely fills the box */
+}
+
+.card:hover {
+  transform: translateY(-10px); /* Lift up on hover */
+  z-index: 10; /* Bring to front */
+}
+
+.opponent-card-count {
+  font-weight: bold;
+  margin-top: 8px;
+}
+
+
+.card-count {
+  position: absolute;
+  top: 0;
+  right: 0;
+  background-color: crimson;
+  color: white;
+  font-weight: bold;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 50%;
+  display: none;
+}
+
+.card-count.visible {
+  display: inline-block;
+}
+
+.left-seat .card-count {
+  left: 0;  /* Align to the left side */
+  right: auto; /* Disable right */
+}
+
+.right-seat .card-count {
+  right: 0;  /* Align to the right side */
+  left: auto; /* Disable left */
+}
+
+.take-button {
+  margin-top: 5px;
+  font-size: 12px;
+  padding: 4px 8px;
+  background-color: #f39c12;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.take-button:hover {
+  background-color: #e67e22;
+}
+
+.bottom-hand {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 12px;
+  background: rgba(255, 255, 255, 0.9);
+  border-top: 2px solid #ccc;
+  text-align: center;
+  z-index: 1000;
+  justify-content: center;
+}
+
+
+.bottom-hand .card-row {
+  justify-content: center;
+}
+.call-ui {
+  position: fixed;
+  bottom: 90px; /* adjust to float above .bottom-hand */
+  left: 50%;
+  transform: translateX(-50%);
+  background-color: #ffffff;
+  padding: 10px 20px;
+  border: 2px solid #444;
+  border-radius: 8px;
+  z-index: 1001;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+}
+
+.call-ui button {
+  margin: 0 10px;
+  padding: 6px 14px;
+  font-size: 16px;
+  cursor: pointer;
+}
+.player-name {
+  margin-top: 5px;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+
+.player-icon {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background-color: #ddd;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+}
+
+.player-slot {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  width: 150px;
+  height: 150px;
+}
+
+.ready-button-container {
+  display: flex;
+  align-items: center;
+}
+
+.card-count {
+  margin-left: 10px;
+  font-size: 14px;
+  background: rgba(0, 0, 0, 0.6);
+  color: white;
+  padding: 2px 6px;
+  border-radius: 5px;
+}
 @media (max-width: 600px) {
   .profile {
-    width: 45px;
-    height: 45px;
-    font-size: 0.65em;
+    position: relative;
+    padding: 10px;
+    background: #eee;
+    border-radius: 8px;
+    text-align: center;
   }
 }
