@@ -10,7 +10,7 @@
     </head>
 <body>
 
-  <!-- 🔊 Music -->
+  <!-- Music -->
   <audio id="bg-music" loop autoplay>
     <source src="{{ url_for('static', filename='audio/lobby.mp3') }}" type="audio/mpeg" />
   </audio>
@@ -18,23 +18,26 @@
     🎵 Music On
   </button>
 
+  <!-- Game Rules Button -->
+  <button id="rules-btn" class="rules-button">❓ Rules</button>
+
   <!-- Profile -->
   <div class="profile-container">
       <div id="profile-bar" class="profile-bar">
-          <img id="profile-avatar" src="{{ url_for('static', filename="images/Icon/defaultIcon.png") }}" alt="Avatar" class="profile-icon">
+          <img id="profile-avatar" src="{{ url_for('static', filename='images/Icon/defaultIcon.png') }}" alt="Avatar" class="profile-icon">
           <span id="profile-username" class="profile-username">Loading...</span>
       </div>
   </div>
 
-  <!-- 🎴 Title -->
+  <!-- Title -->
   <h1 class="game-title">Landlord 🎴</h1>
 
-  <!-- 🎮 Buttons -->
+  <!-- Buttons -->
   <div class="button-row single-center">
     <button id="create-room-btn" class="jelly-button green large-btn">➕ Create Room</button>
   </div>
 
-  <!-- 📋 Room List -->
+  <!-- Room List -->
   <div class="room-list">
     <h2>Available Rooms</h2>
     <div class="room-scroll">
@@ -66,5 +69,25 @@
      </div>
  </div>
 
+ <div id="rules-modal" class="modal-overlay hidden">
+  <div class="modal-box">
+    <div class="room-info">
+      <h2 class="room-name">🃏 Game Rules</h2>
+      <p>- Each game includes <strong>3 players</strong>.</p>
+      <p>- At the start, every player receives <strong>18 cards</strong>.</p>
+      <p>- A visible <strong>3-second countdown</strong> will begin before the game starts.</p>
+      <p>- You will see a <strong>“Grab” button</strong> next to each of your two opponents.<br>
+         Clicking this lets you <strong>steal one random card</strong> from that player.</p>
+      <p>- You can <strong>only grab from other players</strong>, not yourself.</p>
+      <p>- You may <strong>only play pairs</strong> — two cards of the same value, like two 5s or two Queens.</p>
+      <p>- This is a <strong>real-time free-for-all battle</strong>, not a turn-based game. You can play your cards at any moment!</p>
+      <p>- The first player to play all their cards <strong>wins</strong> the game.</p>
+    </div>
+    
+    <div class="modal-btn-container">
+      <button id="close-rules" class="modal-close-btn">OK</button>
+    </div>
+  </div>
+</div>
 </body>
 </html>

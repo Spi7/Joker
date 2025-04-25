@@ -1,5 +1,12 @@
 const socket = io(); // Automatically uses existing WebSocket
 
+let justReloaded = true;
+window.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    justReloaded = false;
+  }, 1200); // 超过1.2秒就不是刷新了
+});
+
 async function fetchCurrentUserOrRedirect() {
   try {
     const res = await fetch("/api/users/@me");
@@ -68,21 +75,35 @@ document.addEventListener("DOMContentLoaded", async () => {
     room_id: roomId
   });
 
+  // Handle new player joins
   socket.on("player_joined", (data) => {
-    console.log(`${data.username} joined!`, data.players);
+    console.log(`${data.username} joined!`, data.user_map);
     updatePlayerList(data.players, user.user_id, data.user_map);
   });
 
+  // Handle player leaves (disconnect)
   socket.on("player_left", (data) => {
     console.log(`Player left room ${data.room_id}`, data.players);
     updatePlayerList(data.players, user.user_id, data.user_map);
   });
 
+  // On initial room join (you yourself)
   socket.on("joined_room", (data) => {
     console.log("Joined room", data);
     updatePlayerList(data.players, user.user_id, data.user_map);
   });
 
+  // If user clicks back button (NOT a refresh), inform server
+  window.addEventListener("popstate", async () => {
+    if (justReloaded) return; // 刷新触发的 popstate 忽略
+    const res = await fetch("/api/users/@me");
+    if (res.ok) {
+      const user = await res.json();
+      socket.emit("intentional_leave_room", {
+        user_id: user.user_id
+      });
+    }
+  });
   socket.on("update_ready_status", (statusList) => {
     console.log("Readiness status:", statusList);
     updateReadyStatus(statusList);
@@ -216,9 +237,17 @@ function updatePlayerList(players, currentUserId, userMap) {
   // Sort players so current user is always first
   const sorted = [...players];
   const youIndex = sorted.indexOf(currentUserId);
+
   if (youIndex > -1) {
     [sorted[0], sorted[youIndex]] = [sorted[youIndex], sorted[0]];
   }
+
+  const displayName = (id) => {
+    if (!id) return "Empty";
+    return id === currentUserId
+      ? `You (${userMap?.[id] || id})`
+      : userMap?.[id] || id;
+  };
 
   // Fill slots with player data
   sorted.forEach((playerId, index) => {
@@ -234,18 +263,20 @@ function updatePlayerList(players, currentUserId, userMap) {
       playerNameEl.textContent = userMap[playerId]?.username || playerId;
     }
   });
+
 }
 
 // Update ready statuses
-function updateReadyStatus(statusList) {
-  statusList.forEach((status) => {
-    const { user_id, isReady } = status;
-    const slot = document.querySelector(`.player-slot[data-user-id="${user_id}"]`);
-    if (slot) {
-      const readyStatusEl = slot.querySelector(".ready-status");
-      if (readyStatusEl) {
-        readyStatusEl.textContent = isReady ? "[Ready]" : "[Not Ready]";
+  function updateReadyStatus(statusList) {
+    statusList.forEach((status) => {
+      const { user_id, isReady } = status;
+      const slot = document.querySelector(`.player-slot[data-user-id="${user_id}"]`);
+      if (slot) {
+        const readyStatusEl = slot.querySelector(".ready-status");
+        if (readyStatusEl) {
+          readyStatusEl.textContent = isReady ? "[Ready]" : "[Not Ready]";
+        }
       }
-    }
-  });
-}
+    });
+  }
+
