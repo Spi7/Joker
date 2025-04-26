@@ -1,4 +1,7 @@
+import { handleGameStart } from "./game_logic.js";
+
 const socket = io(); // Automatically uses existing WebSocket
+let gameStarted = false;
 
 let justReloaded = true;
 window.addEventListener("DOMContentLoaded", () => {
@@ -60,19 +63,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     socket.emit("get_ready_status");
   });
 
-  // On initial room join (you yourself)
+  // On initial room join (you yourself) --> deal with refreshes too
   socket.on("joined_room", (data) => {
     console.log("Joined room", data);
     updatePlayerList(data.players, user.user_id, data.user_map);
-  setTimeout(() => {
-    socket.emit("get_ready_status");
-  }, 100);
+
+    if (data.game_active) {
+      gameStarted = true;  // 🔥 <-- ADD THIS LINE
+    } else {
+      setTimeout(() => {
+        socket.emit("get_ready_status");
+      }, 100);
+    }
   });
+
 
   socket.on("update_ready_status", (statusList) => {
     console.log("Readiness status:", statusList);
     updateReadyStatus(statusList);
   });
+
+  //waiting for game_start
+  socket.on("game_start", (data) => {
+    if (!gameStarted) {
+      startCountdownAndBlockActions(() => {
+        handleGameStart(data, currentUserId, socket);
+        gameStarted = true;
+      });
+    } else {
+      handleGameStart(data, currentUserId, socket);
+    }
+  });
+
 
   // If user clicks back button (NOT a refresh), inform server
   window.addEventListener("popstate", async () => {
@@ -181,4 +203,35 @@ function updateReadyStatus(statusList) {
       readyBtn.classList.add(isReady ? "unready" : "ready"); // note your button class logic is inverse
     }
   });
+}
+
+// Countdown modal handle
+function startCountdownAndBlockActions(callback) {
+  const countdownModal = document.getElementById("countdown-modal");
+  const countdownNumber = document.getElementById("countdown-number");
+  const blockOverlay = document.getElementById("block-actions-overlay");
+
+  blockOverlay.style.display = "block";   // Block everything
+  countdownModal.style.display = "flex";  // Show countdown
+
+  let counter = 3;
+  const interval = setInterval(() => {
+    if (counter === 0) {
+      countdownNumber.textContent = "START!";
+    } else {
+      countdownNumber.textContent = counter;
+    }
+
+    if (counter < 0) {
+      clearInterval(interval);
+      countdownModal.style.display = "none";
+      blockOverlay.style.display = "none";    // Unblock after countdown
+    }
+
+    if (callback) {
+      callback(); // after countdown finishes, run the real game logic (ex. show cards)
+    }
+
+    counter--;
+  }, 1000);
 }

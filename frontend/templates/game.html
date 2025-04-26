@@ -31,11 +31,19 @@
 
 
 
-  <div class="ready-button-container">
+<div class="ready-button-container">
     <button class="ready-button">Ready?</button>
-  </div>
+</div>
 
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="{{ url_for('static', filename='js/gamepage.js') }}"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script type="module" src="{{ url_for('static', filename='js/gamepage.js') }}"></script>
+
+<!--  Block overlay -->
+<div id="block-actions-overlay" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(255,255,255,0.5); z-index:9998;"></div>
+
+<!--  Countdown Modal here -->
+<div id="countdown-modal" style="display: none;">
+    <div id="countdown-number">3</div>
+</div>
 </body>
 </html>

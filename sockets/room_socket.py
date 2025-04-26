@@ -4,6 +4,8 @@ from flask_socketio import emit, join_room, leave_room
 from threading import Timer
 from Database import RoomCollection, UserInfo
 
+from sockets.game_logic import start_game_for_room, handle_take_card
+
 #map {sid: {user_id, room_id}, ...}
 users_in_room = {}
 ready_status = {}  # {room_id: {user_id: True/False}}
@@ -32,7 +34,7 @@ def register_room_handlers(socketio):
         room_id = user_info["room_id"]
 
         def finalize_disconnect():
-            print(f"[Timeout] Finalizing disconnect: {request.sid}")
+            # print(f"[Timeout] Finalizing disconnect: {request.sid}") <-- error print, old sid might be dead already
             users_in_room.pop(request.sid, None)
             disconnect_timers.pop(request.sid, None)
 
@@ -233,8 +235,21 @@ def register_room_handlers(socketio):
                     "room_id": room["room_id"],
                     "room_name": room["room_name"],
                     "players": players,
-                    "user_map": user_map
+                    "user_map": user_map,
+                    "game_active": room.get("game_active", False) #new added for refresh to game start
                 }, room=request.sid)
+
+                # get the same cards for this user
+                if room.get("game_active"):
+                    hands = room.get("hands", {})
+                    if user_id in hands:
+                        emit("game_start", {
+                            "your_hand": hands[user_id],
+                            "opponent_card_counts": [
+                                {"user_id": pid, "count": len(hands[pid])}
+                                for pid in players if pid != user_id
+                            ]
+                        }, room=request.sid)
                 return
 
             if len(players) >= 3:
@@ -327,8 +342,9 @@ def register_room_handlers(socketio):
             print("ready")
 
         if len(players) == 3 and all(ready_status[room_id].get(pid, False) for pid in players):
-            print(f"All players ready in room {room_id}. Starting game...")
-            # start_game_for_room(room_id) ------------------------------------------------------------START GAME
+            room_info = RoomCollection.find_one({"room_id": room_id})
+            if room_info and not room_info.get("game_active", False):
+                start_game_for_room(socketio, room_id, users_in_room)
 
         emit("update_ready_status", status_list, room=room_id)
 

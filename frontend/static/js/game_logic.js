@@ -42,6 +42,11 @@ export function handleGameStart (data, currentUserId, socket) {
     const readyBtnContainer = document.querySelector(".ready-button-container");
     if (readyBtnContainer) readyBtnContainer.remove();
 
+    // Remove the "Ready state" shown beneath players username too
+    document.querySelectorAll(".player-slot .ready-status").forEach(el => {
+        el.remove();
+    });
+
     // Display player's hand
     const handContainer = document.createElement("div");
     handContainer.className = "bottom-hand";
