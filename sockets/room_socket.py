@@ -1,15 +1,16 @@
+from datetime import datetime
 import random
 import uuid
 from flask import request
 from flask_socketio import emit, join_room, leave_room
 from threading import Timer
-from Database import RoomCollection, UserInfo
+from Database import RoomCollection, UserInfo,MatchHistory
 
 #map {sid: {user_id, room_id}, ...}
 users_in_room = {}
 ready_status = {}  # {room_id: {user_id: True/False}}
 disconnect_timers = {}  # {sid: Timer}
-
+decks = {}
 def create_deck():
     suits = ['♠', '♥', '♦', '♣']
     ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
@@ -310,39 +311,12 @@ def register_room_handlers(socketio):
             status_list.append({"user_id": pid, "username": username, "isReady": ready})
             print("ready")
 
+
         if len(players) == 3 and all(ready_status[room_id].get(pid, False) for pid in players):
             print(f"All players ready in room {room_id}. Starting game...")
             start_game_for_room(room_id)
 
         emit("update_ready_status", status_list, room=room_id)
-
-
-    # If all 3 players are ready, start game
-    def give_base_cards_to(room_id, user_id):
-        room = RoomCollection.find_one({"room_id": room_id})
-        if not room:
-            return
-
-        base_cards = room.get("base_cards", [])
-        hands = room.get("hands", {})
-
-        hands[user_id].extend(base_cards)
-
-        RoomCollection.update_one(
-            {"room_id": room_id},
-            {"$set": {
-                "hands": hands,
-                "base_cards": [],
-                "call_status": {},
-                "call_confirm_index": None,
-                "call_confirm_order": []
-            }}
-        )
-
-        emit("base_cards_assigned", {
-            "user_id": user_id,
-            "cards": base_cards
-        }, room=room_id)
 
     def start_game_for_room(room_id):
         deck = create_deck()  # 54 cards including jokers
@@ -352,34 +326,21 @@ def register_room_handlers(socketio):
 
         players = room.get("players", [])
         if len(players) != 3:
+            print("here maybe")
             return
 
-        hands = {pid: [] for pid in players}
-        for i, card in enumerate(deck):
-            pid = players[i % 3]
-            hands[pid].append(card)
+        # Shuffle the deck once
+        random.shuffle(deck)
 
-        RoomCollection.update_one(
-            {"room_id": room_id},
-            {"$set": {
-                "game_active": True,
-                "hands": hands
-            }}
-        )
+        # Divide into 18-card hands
+        decks[room_id] = {}
+        for i, player in enumerate(players):
+            decks[room_id][player] = deck[i * 18:(i + 1) * 18]  # Slice 18 cards for each player
 
         # Send each player their hand + opponent card counts
-        for sid, info in users_in_room.items():
-            if info["room_id"] != room_id:
-                continue
+        emit("game_start", decks[room_id], room=room_id)
 
-            user_id = info["user_id"]
-            emit("game_start", {
-                "your_hand": hands[user_id],
-                "opponent_card_counts": [
-                    {"user_id": pid, "count": len(hands[pid])}
-                    for pid in players if pid != user_id
-                ]
-            }, room=sid)
+
     @socketio.on("leave_homepage")
     def handle_leave_homepage():
         print(f"Client {request.sid} left homepage room")
@@ -387,40 +348,19 @@ def register_room_handlers(socketio):
 
     @socketio.on("take_card")
     def handle_take_card(data):
+        print("Run here")
         user_info = users_in_room.get(request.sid)
-        if not user_info:
-            emit("error", {"message": "User not found"})
-            return
-
-        user_id = user_info["user_id"]
         room_id = user_info["room_id"]
-        target_user_id = data.get("target_user_id")
+        user_id = user_info["user_id"]
+        Roomdecks = decks[room_id]
+        TakeDeck = Roomdecks[data.get("target_user_id")]
+        random_index = random.randint(0, len(TakeDeck) - 1)
+        card = TakeDeck[random_index]
+        MyDeck = Roomdecks[user_id]
 
-        room = RoomCollection.find_one({"room_id": room_id})
-        if not room or not room.get("hands"):
-            emit("error", {"message": "Game state not found"})
-            return
-
-        hands = room["hands"]
-        if target_user_id not in hands or not hands[target_user_id]:
-            emit("error", {"message": "Target player has no cards"})
-            return
-
-        # Take random card
-        import random
-        taken_card = random.choice(hands[target_user_id])
-        hands[target_user_id].remove(taken_card)
-        hands[user_id].append(taken_card)
-
-        RoomCollection.update_one({"room_id": room_id}, {"$set": {"hands": hands}})
-
-        # Notify all players
-        emit("card_taken", {
-            "from_user_id": target_user_id,
-            "to_user_id": user_id,
-            "card_count": len(hands[target_user_id]),
-            "taken_card": taken_card
-        }, room=room_id)
+        MyDeck.append(card)
+        TakeDeck.remove(card)
+        emit("taking_card", Roomdecks,room=room_id)
 
     @socketio.on("check_and_cleanup_user")
     def check_and_cleanup_user(data):
@@ -465,6 +405,75 @@ def register_room_handlers(socketio):
             RoomCollection.delete_one({"room_id": ghost_room["room_id"], "players": []})
             emit("room_deleted", {"room_id": ghost_room["room_id"]}, broadcast=True)
             emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)
+
+    @socketio.on("send_cards")
+    def send_cards(data):
+        user_info = users_in_room.get(request.sid)
+        room_id = user_info["room_id"]
+        user_id = user_info["user_id"]
+        print(decks[room_id][user_id])
+
+        for card in data["cards"]:
+            decks[room_id][user_id].remove(card)
+        print(decks[room_id][user_id])
+        print(user_id)
+
+        emit("card_send", {"user":user_id, "newdeck":decks[room_id][user_id],"card_send":data["cards"]}, room=room_id)
+
+    @socketio.on("game_win")
+    def win_game():
+        user_info = users_in_room.get(request.sid)
+        room_id = user_info["room_id"]
+        user_id = user_info["user_id"]  # Winner ID
+
+        print(f"Winner deck: {decks[room_id][user_id]}")
+
+        # --- Step 1: Initialize fields if they don't exist for the winner ---
+        UserInfo.update_one(
+            {"user_id": user_id, "matches_won": {"$exists": False}},
+            {"$set": {"matches_won": 0}}
+        )
+        UserInfo.update_one(
+            {"user_id": user_id, "matches_played": {"$exists": False}},
+            {"$set": {"matches_played": 0}}
+        )
+
+        # --- Step 2: Increment winner stats ---
+        UserInfo.update_one(
+            {"user_id": user_id},
+            {"$inc": {"matches_won": 1, "matches_played": 1}}
+        )
+
+        # --- Step 3: Update other players ---
+        losers = []
+        room_players = decks[room_id].keys()
+        for pid in room_players:
+            if pid != user_id:
+                # Initialize fields if not exist
+                UserInfo.update_one(
+                    {"user_id": pid, "matches_played": {"$exists": False}},
+                    {"$set": {"matches_played": 0}}
+                )
+                # Increment matches_played
+                UserInfo.update_one(
+                    {"user_id": pid},
+                    {"$inc": {"matches_played": 1}}
+                )
+                # Add loser info
+                loser_info = UserInfo.find_one({"user_id": pid}, {"_id": 0, "user_id": 1, "username": 1, "ImgUrl": 1})
+                losers.append(loser_info)
+
+        # --- Step 4: Store the match result in MatchHistory ---
+        winner_info = UserInfo.find_one({"user_id": user_id}, {"_id": 0, "user_id": 1, "username": 1, "ImgUrl": 1})
+
+        MatchHistory.insert_one({
+            "winner": winner_info,
+            "losers": losers,
+            "timestamp": datetime.utcnow()
+        })
+
+        # Notify room about the winner
+        emit("game_over", {"winner_id": user_id}, room=room_id)
 
 def build_user_map(player_ids):
     user_map = {}

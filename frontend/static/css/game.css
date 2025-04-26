@@ -317,3 +317,9 @@ body {
     text-align: center;
   }
 }
+
+.card.selected {
+  transform: translateY(-10px); /* Slightly lift the card */
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add a shadow */
+  border: 2px solid gold; /* Optional: highlight border */
+}

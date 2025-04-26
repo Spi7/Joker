@@ -55,8 +55,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userInfoRes = await fetch("/api/profile/GetUserInfo",{method: "GET"});
     const userInfo = await userInfoRes.json();
     document.getElementById("username").textContent = userInfo.username;
-    document.getElementById("matches-played").textContent = userInfo.MatchPlayed;
-    document.getElementById("matches-won").textContent = userInfo.MatchWin;
+    document.getElementById("matches-played").textContent = userInfo.matches_played;  // <-- Fixed here
+    document.getElementById("matches-won").textContent = userInfo.matches_won;
     document.querySelector(".profile-avatar").src = userInfo.ImgUrl;
 
     // Fetch match history
@@ -68,7 +68,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     let streak = 0;
     let maxStreak = 0;
     for (const match of matchData) {
-      if (match.MatchResult === "Win") {
+      const isWinner = match.winner.user_id === userInfo.user_id;
+      if (isWinner) {
         streak++;
         maxStreak = Math.max(maxStreak, streak);
       } else {
@@ -82,26 +83,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     matchList.innerHTML = "";
 
     for (const match of matchData) {
-      const card = document.createElement("div");
-      card.className = "post-card horizontal-layout";
+      const isWinner = match.winner.user_id === userInfo.user_id;
+      const badgeSrc = isWinner ? "Win.png" : "Lose.png";
 
-      const badgeSrc = match.MatchResult === "Win" ? "Win.png" : "Lose.png";
+      // Filter out the current user from the opponents list
+      const opponents = match.losers.filter(op => op.user_id !== userInfo.user_id);
+      if (!isWinner) {
+        opponents.push(match.winner); // Add winner if you're a loser
+      }
 
-      const opponentsHTML = match.opponents.map(op => `
+      const opponentsHTML = opponents.map(op => `
         <div class="opponent">
-          <img src="${op.Img}" class="opponent-avatar" alt="${op.username}" />
+          <img src="${op.ImgUrl}" class="opponent-avatar" alt="${op.username}" />
           <div class="opponent-name">${op.username}</div>
         </div>
       `).join("");
 
+      const card = document.createElement("div");
+      card.className = "post-card horizontal-layout";
+
       card.innerHTML = `
         <div class="match-left">
-          <img class="winloss-badge" src="${badgeSrc}" alt="${match.MatchResult}" />
+          <img class="winloss-badge" src="${badgeSrc}" alt="${isWinner ? 'Win' : 'Lose'}" />
         </div>
         <div class="match-center">
           ${opponentsHTML}
         </div>
-        <div class="match-right">${match.StartedTime}</div>
+        <div class="match-right">${new Date(match.timestamp).toLocaleString()}</div>
       `;
 
       matchList.appendChild(card);
