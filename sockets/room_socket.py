@@ -1,17 +1,23 @@
+from datetime import datetime
+import random
 import uuid
 from flask import request
 from flask_socketio import emit, join_room, leave_room
 from threading import Timer
-from Database import RoomCollection, UserInfo
-
-from sockets.game_logic import start_game_for_room, handle_take_card
+from Database import RoomCollection, UserInfo,MatchHistory
 
 #map {sid: {user_id, room_id}, ...}
 users_in_room = {}
 ready_status = {}  # {room_id: {user_id: True/False}}
 disconnect_timers = {}  # {sid: Timer}
-
-
+decks = {}
+def create_deck():
+    suits = ['♠', '♥', '♦', '♣']
+    ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A']
+    deck = [f"{rank}{suit}" for suit in suits for rank in ranks]
+    deck += ['JOKER1', 'JOKER2']
+    random.shuffle(deck)
+    return deck
 
 # map {sid: {user_id, room_id}, ...}
 
@@ -34,7 +40,7 @@ def register_room_handlers(socketio):
         room_id = user_info["room_id"]
 
         def finalize_disconnect():
-            # print(f"[Timeout] Finalizing disconnect: {request.sid}") <-- error print, old sid might be dead already
+            print(f"[Timeout] Finalizing disconnect: {request.sid}")
             users_in_room.pop(request.sid, None)
             disconnect_timers.pop(request.sid, None)
 
@@ -58,14 +64,8 @@ def register_room_handlers(socketio):
                     emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)
                 return
 
-            user_map = {
-                pid: {
-                    "username": user.get("username", f"User {pid[:4]}"),
-                    "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
-                }
-                for pid in remaining_players
-                if (user := UserInfo.find_one({"user_id": pid}))
-            }
+            user_map = build_user_map(updated_room.get("players", []))
+
 
             emit("player_left", {
                 "room_id": room_id,
@@ -104,22 +104,10 @@ def register_room_handlers(socketio):
             {"$pull": {"players": user_id}}
         )
 
-        #update ready status
-        if room_id in ready_status and user_id in ready_status[room_id]:
-            ready_status[room_id].pop(user_id)
-
         updated_room = RoomCollection.find_one({"room_id": room_id})
         if updated_room:
             remaining_players = updated_room.get("players", [])
-
-            user_map = {
-                pid: {
-                    "username": user.get("username", f"User {pid[:4]}"),
-                    "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
-                }
-                for pid in remaining_players
-                if (user := UserInfo.find_one({"user_id": pid}))
-            }
+            user_map = build_user_map(updated_room.get("players", []))
 
             emit("player_left", {
                 "room_id": room_id,
@@ -139,11 +127,6 @@ def register_room_handlers(socketio):
                 if result.deleted_count > 0:
                     emit("room_deleted", {"room_id": room_id}, broadcast=True)
                     emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)
-
-    @socketio.on("join_homepage")  # New handler
-    def handle_join_homepage():
-        print(f"Client {request.sid} joined homepage room")
-        join_room("homepage")
 
     @socketio.on("leave_homepage")
     def handle_leave_homepage():
@@ -197,19 +180,37 @@ def register_room_handlers(socketio):
             emit("error", {"message": "Failed to create room"}, room=request.sid)
 
 
+    @socketio.on("join_homepage")  # New handler
+    def handle_join_homepage():
+        print(f"Client {request.sid} joined homepage room")
+        join_room("homepage")
+
     @socketio.on("join_room")
     def handle_join_room(user_data):
         try:
+            print("run here")
+            # Validate input data
+            if not isinstance(user_data, dict):
+                emit("error", {"message": "Invalid data format"}, room=request.sid)
+                return
+
             user_id = user_data.get("user_id")
             username = user_data.get("username")
             room_id = user_data.get("room_id")
 
+            if not all([user_id, username, room_id]):
+                emit("error", {"message": "Missing required fields", "redirect": "/login"}, room=request.sid)
+                return
+
+            # Check if room exists
             room = RoomCollection.find_one({"room_id": room_id})
             if not room:
                 emit("error", {"message": "Room not found", "redirect": "/homepage"}, room=request.sid)
                 return
 
             players = room.get("players", [])
+
+            # Check if user already in room
             if user_id in players:
                 join_room(room_id)
                 users_in_room[request.sid] = {"user_id": user_id, "room_id": room_id}
@@ -222,34 +223,17 @@ def register_room_handlers(socketio):
                             old_timer.cancel()
                         users_in_room.pop(sid, None)
 
-                user_map = {
-                    pid: {
-                        "username": user.get("username", f"User {pid[:4]}"),
-                        "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
-                    }
-                    for pid in players
-                    if (user := UserInfo.find_one({"user_id": pid}))
-                }
+                # build user_map even if already in room
+                user_map = build_user_map(players)
 
                 emit("joined_room", {
                     "room_id": room["room_id"],
                     "room_name": room["room_name"],
                     "players": players,
-                    "user_map": user_map,
-                    "game_active": room.get("game_active", False) #new added for refresh to game start
+                    "user_map": user_map
                 }, room=request.sid)
+                print("add here")
 
-                # get the same cards for this user
-                if room.get("game_active"):
-                    hands = room.get("hands", {})
-                    if user_id in hands:
-                        emit("game_start", {
-                            "your_hand": hands[user_id],
-                            "opponent_card_counts": [
-                                {"user_id": pid, "count": len(hands[pid])}
-                                for pid in players if pid != user_id
-                            ]
-                        }, room=request.sid)
                 return
 
             if len(players) >= 3:
@@ -260,26 +244,21 @@ def register_room_handlers(socketio):
                 {"room_id": room_id},
                 {"$addToSet": {"players": user_id}}
             )
-
-            #reset ready status
-            if room_id not in ready_status:
-                ready_status[room_id] = {}
-            ready_status[room_id][user_id] = False
-
             join_room(room_id)
             users_in_room[request.sid] = {"user_id": user_id, "room_id": room_id}
 
             updated_room = RoomCollection.find_one({"room_id": room_id})
             updated_players = updated_room.get("players", [])
-            user_map = {
-                pid: {
-                    "username": user.get("username", f"User {pid[:4]}"),
-                    "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
-                }
-                for pid in updated_players
-                if (user := UserInfo.find_one({"user_id": pid}))
-            }
 
+            # 👇 Build user_map dynamically
+            user_map = {
+                pid: UserInfo.find_one({"user_id": pid}).get("username", f"User {pid[:4]}")
+                for pid in players
+            }
+            print("-----------")
+            print(user_map)
+            print(room)
+            # Send confirmation to joining user
             emit("joined_room", {
                 "room_id": room_id,
                 "room_name": updated_room["room_name"],
@@ -300,15 +279,6 @@ def register_room_handlers(socketio):
                 "room_name": updated_room["room_name"],
                 "players": updated_players
             }, room="homepage")
-
-            status_list = []
-            for pid in updated_players:
-                user = UserInfo.find_one({"user_id": pid})
-                username = user.get("username", f"User {pid[:4]}") if user else pid
-                ready = ready_status.get(room_id, {}).get(pid, False)
-                status_list.append({"user_id": pid, "username": username, "isReady": ready})
-
-            emit("update_ready_status", status_list, room=room_id)
 
         except Exception as e:
             emit("error", {"message": "Failed to join room"}, room=request.sid)
@@ -341,35 +311,56 @@ def register_room_handlers(socketio):
             status_list.append({"user_id": pid, "username": username, "isReady": ready})
             print("ready")
 
+
         if len(players) == 3 and all(ready_status[room_id].get(pid, False) for pid in players):
-            room_info = RoomCollection.find_one({"room_id": room_id})
-            if room_info and not room_info.get("game_active", False):
-                start_game_for_room(socketio, room_id, users_in_room)
+            print(f"All players ready in room {room_id}. Starting game...")
+            start_game_for_room(room_id)
 
         emit("update_ready_status", status_list, room=room_id)
 
-    @socketio.on("get_ready_status")
-    def handle_get_ready_status():
-        user_info = users_in_room.get(request.sid)
-        if not user_info:
-            return
-
-        room_id = user_info["room_id"]
-
+    def start_game_for_room(room_id):
+        deck = create_deck()  # 54 cards including jokers
         room = RoomCollection.find_one({"room_id": room_id})
         if not room:
             return
 
         players = room.get("players", [])
+        if len(players) != 3:
+            print("here maybe")
+            return
 
-        status_list = []
-        for pid in players:
-            user = UserInfo.find_one({"user_id": pid})
-            username = user.get("username", f"User {pid[:4]}") if user else pid
-            ready = ready_status.get(room_id, {}).get(pid, False)
-            status_list.append({"user_id": pid, "username": username, "isReady": ready})
+        # Shuffle the deck once
+        random.shuffle(deck)
 
-        emit("update_ready_status", status_list, room=request.sid)
+        # Divide into 18-card hands
+        decks[room_id] = {}
+        for i, player in enumerate(players):
+            decks[room_id][player] = deck[i * 18:(i + 1) * 18]  # Slice 18 cards for each player
+
+        # Send each player their hand + opponent card counts
+        emit("game_start", decks[room_id], room=room_id)
+
+
+    @socketio.on("leave_homepage")
+    def handle_leave_homepage():
+        print(f"Client {request.sid} left homepage room")
+        leave_room("homepage")
+
+    @socketio.on("take_card")
+    def handle_take_card(data):
+        print("Run here")
+        user_info = users_in_room.get(request.sid)
+        room_id = user_info["room_id"]
+        user_id = user_info["user_id"]
+        Roomdecks = decks[room_id]
+        TakeDeck = Roomdecks[data.get("target_user_id")]
+        random_index = random.randint(0, len(TakeDeck) - 1)
+        card = TakeDeck[random_index]
+        MyDeck = Roomdecks[user_id]
+
+        MyDeck.append(card)
+        TakeDeck.remove(card)
+        emit("taking_card", Roomdecks,room=room_id)
 
     @socketio.on("check_and_cleanup_user")
     def check_and_cleanup_user(data):
@@ -380,10 +371,6 @@ def register_room_handlers(socketio):
         #unnecessary emit, check if this player is in ghost room
         ghost_room = RoomCollection.find_one({"players": user_id})
         if not ghost_room:
-            return
-
-        #When game is active, the user should not be removed from the game
-        if ghost_room.get("game_active", False):
             return
 
         print(f"[Cleanup] Found ghost user in room {ghost_room['room_id']}")
@@ -399,14 +386,7 @@ def register_room_handlers(socketio):
             return
 
         remaining = updated_room.get("players", [])
-        user_map = {
-            pid: {
-                "username": user.get("username", f"User {pid[:4]}"),
-                "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
-            }
-            for pid in remaining
-            if (user := UserInfo.find_one({"user_id": pid}))
-        }
+        user_map = build_user_map(updated_room.get("players", []))
 
         emit("player_left", {
             "room_id": ghost_room["room_id"],
@@ -425,3 +405,84 @@ def register_room_handlers(socketio):
             RoomCollection.delete_one({"room_id": ghost_room["room_id"], "players": []})
             emit("room_deleted", {"room_id": ghost_room["room_id"]}, broadcast=True)
             emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)
+
+    @socketio.on("send_cards")
+    def send_cards(data):
+        user_info = users_in_room.get(request.sid)
+        room_id = user_info["room_id"]
+        user_id = user_info["user_id"]
+        print(decks[room_id][user_id])
+
+        for card in data["cards"]:
+            decks[room_id][user_id].remove(card)
+        print(decks[room_id][user_id])
+        print(user_id)
+
+        emit("card_send", {"user":user_id, "newdeck":decks[room_id][user_id],"card_send":data["cards"]}, room=room_id)
+
+    @socketio.on("game_win")
+    def win_game():
+        user_info = users_in_room.get(request.sid)
+        room_id = user_info["room_id"]
+        user_id = user_info["user_id"]  # Winner ID
+
+        print(f"Winner deck: {decks[room_id][user_id]}")
+
+        # --- Step 1: Initialize fields if they don't exist for the winner ---
+        UserInfo.update_one(
+            {"user_id": user_id, "matches_won": {"$exists": False}},
+            {"$set": {"matches_won": 0}}
+        )
+        UserInfo.update_one(
+            {"user_id": user_id, "matches_played": {"$exists": False}},
+            {"$set": {"matches_played": 0}}
+        )
+
+        # --- Step 2: Increment winner stats ---
+        UserInfo.update_one(
+            {"user_id": user_id},
+            {"$inc": {"matches_won": 1, "matches_played": 1}}
+        )
+
+        # --- Step 3: Update other players ---
+        losers = []
+        room_players = decks[room_id].keys()
+        for pid in room_players:
+            if pid != user_id:
+                # Initialize fields if not exist
+                UserInfo.update_one(
+                    {"user_id": pid, "matches_played": {"$exists": False}},
+                    {"$set": {"matches_played": 0}}
+                )
+                # Increment matches_played
+                UserInfo.update_one(
+                    {"user_id": pid},
+                    {"$inc": {"matches_played": 1}}
+                )
+                # Add loser info
+                loser_info = UserInfo.find_one({"user_id": pid}, {"_id": 0, "user_id": 1, "username": 1, "ImgUrl": 1})
+                losers.append(loser_info)
+
+        # --- Step 4: Store the match result in MatchHistory ---
+        winner_info = UserInfo.find_one({"user_id": user_id}, {"_id": 0, "user_id": 1, "username": 1, "ImgUrl": 1})
+
+        MatchHistory.insert_one({
+            "winner": winner_info,
+            "losers": losers,
+            "timestamp": datetime.utcnow()
+        })
+
+        # Notify room about the winner
+        emit("game_over", {"winner_id": user_id}, room=room_id)
+
+def build_user_map(player_ids):
+    user_map = {}
+    for pid in player_ids:
+        user = UserInfo.find_one({"user_id": pid})
+        user_map[pid] = {
+            "username": user.get("username", f"User {pid[:4]}") if user else f"User {pid[:4]}",
+            "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png") if user else "/static/images/Icon/defaultIcon.png"
+        }
+    return user_map
+
+    # leave the homepage room
