@@ -55,9 +55,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const userInfoRes = await fetch("/api/profile/GetUserInfo",{method: "GET"});
     const userInfo = await userInfoRes.json();
     document.getElementById("username").textContent = userInfo.username;
-    document.getElementById("matches-played").textContent = userInfo.MatchPlayed;
-    document.getElementById("matches-won").textContent = userInfo.MatchWin;
-    document.querySelector(".profile-avatar").src = userInfo.ImgUrl;
+    document.getElementById("matches-played").textContent = userInfo.MatchPlayed ?? 0;
+    document.getElementById("matches-won").textContent = userInfo.MatchWin ?? 0;
+    const avatarImg = document.querySelector(".profile-avatar");
+    if (userInfo.ImgUrl) {
+      avatarImg.src = userInfo.ImgUrl;
+    } else {
+      avatarImg.src = "/static/images/defaultIcon.png"; // ← or whatever your default path is
+    }
 
     // Fetch match history
     const matchResponse = await fetch(`/api/profile/GetMatch`,{method:"GET"});
