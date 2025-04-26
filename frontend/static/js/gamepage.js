@@ -173,9 +173,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   socket.on("card_send", (data) => {
-    user_id = data["user"]
-    newdeck = data["newdeck"]
-    card_send = data["card_send"]
+    let user_id = data["user"]
+    let newdeck = data["newdeck"]
+    let card_send = data["card_send"]
     // 1. If this is YOU, re-render your hand
     console.log(user.user_id)
     console.log(newdeck)
