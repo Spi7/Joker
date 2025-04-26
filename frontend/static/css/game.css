@@ -52,9 +52,14 @@ body {
 
 
 .ready-status {
-  margin-top: 5px;
+  font-weight: bold;
   font-size: 14px;
-  color: #555;
+  background-color: white;
+  padding: 2px 6px;
+  border-radius: 5px;
+  margin-top: 5px;
+  min-width: 80px; /* fixed minimum width */
+  text-align: center; /* center the text inside */
 }
 
 .bottom-left {
@@ -101,6 +106,14 @@ body {
   cursor: pointer;
   box-shadow: 0 2px 4px rgba(0,0,0,0.3);
   transition: background-color 0.2s ease;
+}
+
+.ready-button.ready {
+  background-color: green;
+}
+
+.ready-button.unready {
+  background-color: red;
 }
 
 .ready-button:hover {
@@ -308,6 +321,43 @@ body {
   padding: 2px 6px;
   border-radius: 5px;
 }
+
+.ready-status.ready {
+  color: green;
+}
+
+.ready-status.not-ready {
+  color: red;
+}
+
+#countdown-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 2000; /* super high */
+  font-size: 5rem;
+  font-weight: bold;
+  color: black;
+  pointer-events: all; /* block clicks */
+}
+
+#countdown-number {
+  animation: countdown-animation 1s steps(1, end) 4;
+}
+
+@keyframes countdown-animation {
+  0%, 25% { transform: scale(1); }
+  50% { transform: scale(1.2); }
+  75%, 100% { transform: scale(1); }
+}
+
+
 @media (max-width: 600px) {
   .profile {
     position: relative;

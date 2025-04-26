@@ -9,6 +9,7 @@ from Database import UserInfo
 from auth import auth_bp, token_required
 from routes.users_routes import user_bp
 from routes.Profile import blueprint
+from routes.game_routes import game_blueprint
 
 import logging
 import os
@@ -41,6 +42,8 @@ app.secret_key = os.environ.get('SECRET_KEY') or 'dev_key_only_for_development'
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(blueprint)
+
+app.register_blueprint(game_blueprint)
 
 socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
 #later for production
