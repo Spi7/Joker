@@ -102,6 +102,10 @@ def register_room_handlers(socketio):
             {"$pull": {"players": user_id}}
         )
 
+        #update ready status
+        if room_id in ready_status and user_id in ready_status[room_id]:
+            ready_status[room_id].pop(user_id)
+
         updated_room = RoomCollection.find_one({"room_id": room_id})
         if updated_room:
             remaining_players = updated_room.get("players", [])
@@ -242,6 +246,11 @@ def register_room_handlers(socketio):
                 {"$addToSet": {"players": user_id}}
             )
 
+            #reset ready status
+            if room_id not in ready_status:
+                ready_status[room_id] = {}
+            ready_status[room_id][user_id] = False
+
             join_room(room_id)
             users_in_room[request.sid] = {"user_id": user_id, "room_id": room_id}
 
@@ -276,6 +285,15 @@ def register_room_handlers(socketio):
                 "room_name": updated_room["room_name"],
                 "players": updated_players
             }, room="homepage")
+
+            status_list = []
+            for pid in updated_players:
+                user = UserInfo.find_one({"user_id": pid})
+                username = user.get("username", f"User {pid[:4]}") if user else pid
+                ready = ready_status.get(room_id, {}).get(pid, False)
+                status_list.append({"user_id": pid, "username": username, "isReady": ready})
+
+            emit("update_ready_status", status_list, room=room_id)
 
         except Exception as e:
             emit("error", {"message": "Failed to join room"}, room=request.sid)
@@ -313,6 +331,29 @@ def register_room_handlers(socketio):
             # start_game_for_room(room_id) ------------------------------------------------------------START GAME
 
         emit("update_ready_status", status_list, room=room_id)
+
+    @socketio.on("get_ready_status")
+    def handle_get_ready_status():
+        user_info = users_in_room.get(request.sid)
+        if not user_info:
+            return
+
+        room_id = user_info["room_id"]
+
+        room = RoomCollection.find_one({"room_id": room_id})
+        if not room:
+            return
+
+        players = room.get("players", [])
+
+        status_list = []
+        for pid in players:
+            user = UserInfo.find_one({"user_id": pid})
+            username = user.get("username", f"User {pid[:4]}") if user else pid
+            ready = ready_status.get(room_id, {}).get(pid, False)
+            status_list.append({"user_id": pid, "username": username, "isReady": ready})
+
+        emit("update_ready_status", status_list, room=request.sid)
 
     @socketio.on("check_and_cleanup_user")
     def check_and_cleanup_user(data):

@@ -17,6 +17,8 @@ async function fetchCurrentUserOrRedirect() {
   }
 }
 
+const seatCache = {}; // { roomId: { userId: seatIndex } }
+let currentUserId = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
   const urlParams = new URLSearchParams(window.location.search);
@@ -26,6 +28,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const user = await fetchCurrentUserOrRedirect();
   if (!user) return;
+  currentUserId = user.user_id;
 
   let isReady = false;
   const readyBtn = document.querySelector(".ready-button");
@@ -34,6 +37,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     isReady = !isReady;
     socket.emit("player_ready", { ready: isReady });
     readyBtn.textContent = isReady ? "Unready" : "Ready?";
+    readyBtn.classList.toggle("ready", !isReady);
+    readyBtn.classList.toggle("unready", isReady);
   });
 
   socket.emit("join_room", {
@@ -52,17 +57,26 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.on("player_left", (data) => {
     console.log(`Player left room ${data.room_id}`, data.user_map);
     updatePlayerList(data.players, user.user_id, data.user_map);
+    socket.emit("get_ready_status");
   });
 
   // On initial room join (you yourself)
   socket.on("joined_room", (data) => {
     console.log("Joined room", data);
     updatePlayerList(data.players, user.user_id, data.user_map);
+  setTimeout(() => {
+    socket.emit("get_ready_status");
+  }, 100);
+  });
+
+  socket.on("update_ready_status", (statusList) => {
+    console.log("Readiness status:", statusList);
+    updateReadyStatus(statusList);
   });
 
   // If user clicks back button (NOT a refresh), inform server
   window.addEventListener("popstate", async () => {
-    if (justReloaded) return; // 刷新触发的 popstate 忽略
+    if (justReloaded) return;
     const res = await fetch("/api/users/@me");
     if (res.ok) {
       const user = await res.json();
@@ -71,53 +85,61 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
   });
-
-  socket.on("update_ready_status", (statusList) => {
-    console.log("Readiness status:", statusList);
-    updateReadyStatus(statusList);
-  });
 });
 
 // Update player slots with usernames and default ready status
 function updatePlayerList(players, currentUserId, userMap) {
-  const [slot1, slot2, slot3] = [
+  const [slot0, slot1, slot2] = [
     document.querySelector(".player-slot.bottom-left"),
     document.querySelector(".player-slot.left-seat"),
     document.querySelector(".player-slot.right-seat")
   ];
+  const slots = [slot0, slot1, slot2];
 
-  const slots = [slot1, slot2, slot3];
+  const roomId = new URLSearchParams(window.location.search).get("room_id");
+  if (!roomId) return;
+
+  if (!seatCache[roomId]) seatCache[roomId] = {};
+  const seatMap = seatCache[roomId];
+
+  // Assign seat index to any new users not yet cached
+  let nextAvailableSeat = 0;
+  players.forEach((playerId) => {
+    if (!(playerId in seatMap)) {
+      while (Object.values(seatMap).includes(nextAvailableSeat)) {
+        nextAvailableSeat++;
+      }
+      seatMap[playerId] = nextAvailableSeat;
+    }
+  });
+
+  // Make sure currentUserId is always at seat 0
+  const mySeat = seatMap[currentUserId];
+  if (mySeat !== 0) {
+    const userAtZero = Object.keys(seatMap).find(uid => seatMap[uid] === 0);
+    if (userAtZero) seatMap[userAtZero] = mySeat;
+    seatMap[currentUserId] = 0;
+  }
 
   // Reset all slots
   slots.forEach(slot => {
+    slots.forEach(slot => {
     slot.dataset.userId = "";
     slot.querySelector(".card-count").textContent = "0";
-    slot.querySelector(".ready-status").textContent = "[Not Ready]";
-
-    const iconContainer = slot.querySelector(".player-icon");
-    iconContainer.innerHTML = ""; // Clear icon
-    const playerNameEl = slot.querySelector(".player-name");
-    if (playerNameEl) playerNameEl.textContent = "Empty"; // Reset name
+    const readyStatusEl = slot.querySelector(".ready-status");
+    readyStatusEl.textContent = "[Not Ready]";
+    readyStatusEl.classList.remove("ready", "not-ready");  // Reset both classes
+    readyStatusEl.classList.add("not-ready"); //
+    readyStatusEl.style.color = ""; //
+    slot.querySelector(".player-icon").innerHTML = "";
+    slot.querySelector(".player-name").textContent = "Empty";
+});
   });
 
-  // Sort players so current user is always first
-  const sorted = [...players];
-  const youIndex = sorted.indexOf(currentUserId);
-
-  if (youIndex > -1) {
-    [sorted[0], sorted[youIndex]] = [sorted[youIndex], sorted[0]];
-  }
-
-  // const displayName = (id) => {
-  //   if (!id) return "Empty";
-  //   return id === currentUserId
-  //     ? `You (${userMap?.[id] || id})`
-  //     : userMap?.[id] || id;
-  // };
-
-  // Fill slots with player data
-  sorted.forEach((playerId, index) => {
-    const slot = slots[index];
+  // Fill slots based on assigned seat index
+  players.forEach((playerId) => {
+    const seatIndex = seatMap[playerId];
+    const slot = slots[seatIndex];
     if (!slot) return;
 
     slot.dataset.userId = playerId;
@@ -136,20 +158,27 @@ function updatePlayerList(players, currentUserId, userMap) {
       playerNameEl.textContent = username;
     }
   });
-
 }
 
 // Update ready statuses
-  function updateReadyStatus(statusList) {
-    statusList.forEach((status) => {
-      const { user_id, isReady } = status;
-      const slot = document.querySelector(`.player-slot[data-user-id="${user_id}"]`);
-      if (slot) {
-        const readyStatusEl = slot.querySelector(".ready-status");
-        if (readyStatusEl) {
-          readyStatusEl.textContent = isReady ? "[Ready]" : "[Not Ready]";
-        }
+function updateReadyStatus(statusList) {
+  statusList.forEach((status) => {
+    const { user_id, isReady } = status;
+    const slot = document.querySelector(`.player-slot[data-user-id="${user_id}"]`);
+    if (slot) {
+      const readyStatusEl = slot.querySelector(".ready-status");
+      if (readyStatusEl) {
+        readyStatusEl.textContent = isReady ? "[Ready]" : "[Not Ready]";
+        readyStatusEl.classList.remove("ready", "not-ready"); // first always reset both
+        readyStatusEl.classList.add(isReady ? "ready" : "not-ready"); // then add correct one
       }
-    });
-  }
+    }
 
+    const readyBtn = document.querySelector(".ready-button");
+    if (user_id === currentUserId && readyBtn) {
+      readyBtn.textContent = isReady ? "Unready" : "Ready?";
+      readyBtn.classList.remove("ready", "unready");
+      readyBtn.classList.add(isReady ? "unready" : "ready"); // note your button class logic is inverse
+    }
+  });
+}
