@@ -382,6 +382,10 @@ def register_room_handlers(socketio):
         if not ghost_room:
             return
 
+        #When game is active, the user should not be removed from the game
+        if ghost_room.get("game_active", False):
+            return
+
         print(f"[Cleanup] Found ghost user in room {ghost_room['room_id']}")
 
         # remove the user from the room, if it's consider as a ghost user

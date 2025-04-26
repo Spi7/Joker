@@ -11,6 +11,28 @@ async function fetchCurrentUserOrRedirect() {
   }
 }
 
+async function checkAndReconnectGame() {
+  try {
+    const res = await fetch(`/api/game/CheckUserInGame`);
+    const data = await res.json();
+    console.log("[Reconnect Debug] check_user_in_game API result:", data);
+    if (data.inGame) {
+      const reconnectModal = document.getElementById("reconnect-modal");
+      reconnectModal.classList.remove("hidden");
+
+      const okButton = document.getElementById("reconnect-ok");
+      okButton.addEventListener("click", () => {
+        window.location.href = `/game?room_id=${data.room_id}&room_name=${encodeURIComponent(data.room_name)}`;
+      });
+    }
+  } catch (err) {
+    console.error("Failed to check active game:", err);
+  }
+}
+
+
+
+
 let justNavigatedFromGame = false;
 
 // Detect if user came from /game (i.e., back button used)
@@ -28,13 +50,19 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.emit("join_homepage");
   socket.emit("get_all_rooms");
 
-  //New: if returned from game, emit intentional_leave_room
   if (justNavigatedFromGame) {
     socket.emit("intentional_leave_room", {
       user_id: userInfo.user_id
     });
+
+    setTimeout(async () => {
+      await checkAndReconnectGame();
+    }, 500);  // <-- small delay after intentional leave
     justNavigatedFromGame = false; // reset
+  } else {
+    await checkAndReconnectGame();
   }
+
   socket.emit("check_and_cleanup_user", { user_id: userInfo.user_id });
 
 
