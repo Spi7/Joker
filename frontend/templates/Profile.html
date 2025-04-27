@@ -4,9 +4,30 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Profile Page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/Profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
     <script src="{{ url_for('static', filename='js/Profile.js') }}" defer></script>
 </head>
 <body>
+<nav class="game-navbar">
+    <div class="navbar-logo">
+        <span class="card-symbol">♠ ♥ ♣ ♦</span>
+        <span class="navbar-title">Landlord</span>
+    </div>
+    <div class="navbar-links">
+        <a href="/homepage" class="nav-link" id="nav-home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Home</span>
+        </a>
+        <a href="/leaderboard" class="nav-link" id="nav-leaderboard">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-text">Leaderboard</span>
+        </a>
+        <a href="/profile" class="nav-link" id="nav-profile">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">Profile</span>
+        </a>
+    </div>
+</nav>
 <div class="profile-header-bar">
     <div class="back-button" id="go-home">
         &#8592;

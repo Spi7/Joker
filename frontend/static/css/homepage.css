@@ -177,38 +177,6 @@ border-radius: 1rem;
 display: none;
 }
 
-/* CSS for profile bar */
-.profile-bar {
-padding: 5px;
-padding-left: 10px;
-min-width: 20%;
-min-height: 10%;
-position: absolute;
-top: 1rem;
-left: 1rem;
-display: flex;
-align-items: center;
-background-color: white;
-opacity: 0.85;
-border-radius: 10px;
-}
-
-.profile-icon {
-width: 50px;
-height: 50px;
-border-radius: 100%;
-border-style: solid;
-object-fit: cover;
-}
-
-.profile-username {
-padding: 15px;
-font-weight: bold;
-font-size: 1rem;
-color: #333;
-max-width: 100%;
-}
-
 .modal-close-btn {
   background-color: #a78bfa;
   color: white;

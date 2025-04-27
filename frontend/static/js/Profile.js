@@ -9,6 +9,26 @@ async function fetchCurrentUserOrRedirect() {
     }
 }
 
+document.addEventListener('DOMContentLoaded', function () {
+    // Detect current page and add appropriate class to body
+    const path = window.location.pathname;
+    if (path.includes('/homepage')) {
+        document.body.classList.add('homepage-page');
+    } else if (path.includes('/leaderboard')) {
+        document.body.classList.add('leaderboard-page');
+    } else if (path.includes('/profile')) {
+        document.body.classList.add('profile-page');
+    }
+
+    // Add active class to current navigation link
+    const navLinks = document.querySelectorAll('.nav-link');
+    navLinks.forEach(link => {
+        if (link.getAttribute('href') === path) {
+            link.classList.add('active');
+        }
+    });
+});
+
 document.addEventListener("DOMContentLoaded", async () => {
     const backButton = document.getElementById("go-home");
     backButton.addEventListener("click", () => {
