@@ -51,7 +51,7 @@ def ChangeIcon():
     path = os.path.join(prefix_path, filename)
     image.save(path)  # ✅ save file directly
 
-    public_url = f"/static/images/{filename}"
+    public_url = f"/static/images/Icon/{filename}"
     UserInfo.update_one({"user_id": user_id}, {"$set": {"ImgUrl": public_url}})
     print(f"Saved icon to {path}")
 

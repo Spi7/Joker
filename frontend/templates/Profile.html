@@ -1,61 +1,82 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Profile Page</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/Profile.css') }}">
-  <script src="{{ url_for('static', filename='js/Profile.js') }}" defer></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile Page</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/Profile.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
+    <script src="{{ url_for('static', filename='js/Profile.js') }}" defer></script>
 </head>
 <body>
-  <div class="profile-header-bar">
-    <div class="back-button" id = "go-home">
-      &#8592;
+<nav class="game-navbar">
+    <div class="navbar-logo">
+        <span class="card-symbol">♠ ♥ ♣ ♦</span>
+        <span class="navbar-title">Landlord</span>
     </div>
-    <span class="header-title">Profile</span>
-  </div>
-  <div class="profile-container-modern">
+    <div class="navbar-links">
+        <a href="/homepage" class="nav-link" id="nav-home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Home</span>
+        </a>
+        <a href="/leaderboard" class="nav-link" id="nav-leaderboard">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-text">Leaderboard</span>
+        </a>
+        <a href="/profile" class="nav-link" id="nav-profile">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">Profile</span>
+        </a>
+    </div>
+</nav>
+<div class="profile-container-modern">
     <div class="profile-header">
-      <div class="profile-content">
-        <!-- Left Section -->
-        <div class="profile-info">
-          <div class="profile-avatar-container">
-            <img src="https://via.placeholder.com/100" class="profile-avatar" alt="User Avatar" />
-            <button class="edit-avatar-btn" id="edit-avatar-btn"><i class="edit-icon"></i></button>
-            <input type="file" id="avatar-upload" accept="image/*" style="display: none;" />
-          </div>
-          <h2 class="profile-username" id="username">PlayerOne</h2>
-          <p class="profile-fullname"></p>
+        <div class="profile-content">
+            <!-- Left Section -->
+            <div class="profile-info">
+                <div class="profile-avatar-container">
+                    <img src="https://via.placeholder.com/100" class="profile-avatar" alt="User Avatar"/>
+                    <button class="edit-avatar-btn" id="edit-avatar-btn"><i class="edit-icon"></i></button>
+                    <input type="file" id="avatar-upload" accept="image/*" style="display: none;"/>
+                </div>
+                <h2 class="profile-username" id="username">PlayerOne</h2>
+                <p class="profile-fullname"></p>
 
-          <div class="profile-stats">
-            <div class="stat-item">
-              <div class="stat-value" id="matches-played">0</div>
-              <div class="stat-label">Matches Played</div>
+                <div class="profile-stats">
+                    <div class="stat-item">
+                        <div class="stat-value" id="matches-played">0</div>
+                        <div class="stat-label">Matches Played</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="matches-won">0</div>
+                        <div class="stat-label">Matches Won</div>
+                    </div>
+                    <div class="stat-item">
+                        <div class="stat-value" id="highest-streak">0</div>
+                        <div class="stat-label">Highest Streak</div>
+                    </div>
+                </div>
             </div>
-            <div class="stat-item">
-              <div class="stat-value" id="matches-won">0</div>
-              <div class="stat-label">Matches Won</div>
+
+            <!-- Right Section: Match History -->
+            <div class="activity-section">
+                <div class="tab-navigation">
+                    <div class="tab-item static">Match History</div>
+                </div>
+                <div class="tab-content" id="history-content">
+                    <div class="posts-container" id="match-list">
+                        <!-- Matches injected here -->
+                    </div>
+                </div>
             </div>
-            <div class="stat-item">
-              <div class="stat-value" id="highest-streak">0</div>
-              <div class="stat-label">Highest Streak</div>
-            </div>
-          </div>
         </div>
-
-        <!-- Right Section: Match History -->
-        <div class="activity-section">
-          <div class="tab-navigation">
-            <div class="tab-item static">Match History</div>
-          </div>
-          <div class="tab-content" id="history-content">
-            <div class="posts-container" id="match-list">
-              <!-- Matches injected here -->
-            </div>
-          </div>
-        </div>
-
-      </div>
     </div>
-  </div>
+    <!-- Logout button moved to the bottom-right corner -->
+    <button class="logout-btn poker-style" id="logout-btn">
+        <span class="card-symbol">♠</span>
+        Logout
+    </button>
+</div>
 </body>
 </html>

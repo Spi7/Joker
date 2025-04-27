@@ -1,25 +1,28 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <title>Landlord</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+    <meta charset="UTF-8"/>
+    <title>Landlord</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/game.css') }}">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
+
 </head>
 <body>
-  <div id="game-container">
+<div id="game-container">
     <div class="top-bar">{{ room_name }}</div>
 
     <div class="profile bottom-left">Empty</div>
     <div class="profile left-seat">Empty</div>
     <div class="profile right-seat">Empty</div>
-  </div>
+</div>
 
-  <div class="ready-button-container">
+<div class="ready-button-container">
     <button class="ready-button">Ready?</button>
-  </div>
+</div>
 
-  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-  <script src="{{ url_for('static', filename='js/gamepage.js') }}"></script>
+<script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+<script src="{{ url_for('static', filename='js/gamepage.js') }}"></script>
 
 </body>
 </html>
