@@ -10,6 +10,8 @@ from auth import auth_bp, token_required
 from routes.users_routes import user_bp
 from routes.Profile import blueprint
 from routes.game_routes import game_blueprint
+from routes.leaderboard_routes import leaderboard_bp
+
 
 import logging
 import os
@@ -47,6 +49,11 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(blueprint)
 app.register_blueprint(game_blueprint)
+app.register_blueprint(leaderboard_bp)
+
+socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
+#later for production
+# socketio = SocketIO(app, cors_allowed_origins=["https://yourdomain.com"])
 
 #room handles
 from sockets.room_socket import register_room_handlers
@@ -81,6 +88,10 @@ def homepage():
 @app.route("/profile")
 def profile():
     return render_template("profile.html")
+
+@app.route("/leaderboard")
+def leaderboard():
+    return render_template("leaderboard.html")
 
 
 if __name__ == "__main__":

@@ -1,49 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8" />
+    <meta charset="UTF-8"/>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dou Dizhu Lobby</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}"/>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
+
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/homepage.js') }}" defer></script>
-    </head>
+</head>
 <body>
 
-  <!-- Music -->
-  <audio id="bg-music" loop autoplay>
-    <source src="{{ url_for('static', filename='audio/lobby.mp3') }}" type="audio/mpeg" />
-  </audio>
-  <button id="music-toggle" onclick="toggleMusic()" class="music-toggle">
+<nav class="game-navbar">
+    <div class="navbar-logo">
+        <span class="card-symbol">♠ ♥ ♣ ♦</span>
+        <span class="navbar-title">Landlord</span>
+    </div>
+    <div class="navbar-links">
+        <a href="/homepage" class="nav-link" id="nav-home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Home</span>
+        </a>
+        <a href="/leaderboard" class="nav-link" id="nav-leaderboard">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-text">Leaderboard</span>
+        </a>
+        <a href="/profile" class="nav-link" id="nav-profile">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">Profile</span>
+        </a>
+    </div>
+</nav>
+
+<!-- Music -->
+<audio id="bg-music" loop autoplay>
+    <source src="{{ url_for('static', filename='audio/lobby.mp3') }}" type="audio/mpeg"/>
+</audio>
+<button id="music-toggle" onclick="toggleMusic()" class="music-toggle">
     🎵 Music On
-  </button>
+</button>
 
-  <!-- Game Rules Button -->
-  <button id="rules-btn" class="rules-button">❓ Rules</button>
+<!-- Game Rules Button -->
+<button id="rules-btn" class="rules-button">❓ Rules</button>
 
-  <!-- Profile -->
-  <div class="profile-container">
-      <div id="profile-bar" class="profile-bar">
-          <img id="profile-avatar" src="{{ url_for('static', filename='images/Icon/defaultIcon.png') }}" alt="Avatar" class="profile-icon">
-          <span id="profile-username" class="profile-username">Loading...</span>
-      </div>
-  </div>
+<!-- Title -->
+<h1 class="game-title">Landlord 🎴</h1>
 
-  <!-- Title -->
-  <h1 class="game-title">Landlord 🎴</h1>
-
-  <!-- Buttons -->
-  <div class="button-row single-center">
+<!-- Buttons -->
+<div class="button-row single-center">
     <button id="create-room-btn" class="jelly-button green large-btn">➕ Create Room</button>
-  </div>
+</div>
 
-  <!-- Room List -->
-  <div class="room-list">
+<!-- Room List -->
+<div class="room-list">
     <h2>Available Rooms</h2>
     <div class="room-scroll">
         <!--add by js -->
     </div>
-  </div>
+</div>
 
 <!-- Room full Modal -->
 <div id="modal-overlay" class="modal-overlay hidden">
@@ -76,7 +93,6 @@
     <div class="modal-btn-container">
       <button id="close-rules" class="modal-close-btn">OK</button>
     </div>
-  </div>
 </div>
 
 <!-- 🔥 Reconnect Modal OUTSIDE -->
