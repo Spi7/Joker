@@ -13,12 +13,20 @@ services:
     depends_on:
       - mongo
 
+  #build: ./nginx2 into mongo
   mongo:
     image: mongo:4.2.5
     ports:
       - "27017:27017"   #this part must be removed before deploying
     volumes:
       - mongo-data:/data/db
+  #check this app part and see if there's any modification need to be made
+#  app:
+#    build: .
+#    environment:
+#      WAIT_HOSTS: mongo:27017
+#    ports:
+#      - '8080:8080'
 
 volumes:
   mongo-data:
