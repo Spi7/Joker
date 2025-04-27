@@ -10,17 +10,14 @@ async function fetchCurrentUserOrRedirect() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const backButton = document.getElementById("go-home");
-  backButton.addEventListener("click", () => {
-    window.location.href = "/homepage";
-  });
-
-  let userInfo = await fetchCurrentUserOrRedirect() //check auth
+  let userInfo = await fetchCurrentUserOrRedirect(); // check auth
   if (!userInfo) {
     return;
   }
+
   const editBtn = document.getElementById("edit-avatar-btn");
   const uploadInput = document.getElementById("avatar-upload");
+  const avatarElement = document.querySelector(".profile-avatar");
 
   editBtn.addEventListener("click", () => {
     uploadInput.click();
@@ -41,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const data = await res.json();
       if (data.ImgUrl) {
-        document.querySelector(".profile-avatar").src = data.ImgUrl;
+        avatarElement.src = data.ImgUrl;
       } else {
         console.error("Invalid response from server:", data);
       }
@@ -51,20 +48,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   try {
-    // Fetch user info
-    const userInfoRes = await fetch("/api/profile/GetUserInfo",{method: "GET"});
+    const userInfoRes = await fetch("/api/profile/GetUserInfo", { method: "GET" });
     const userInfo = await userInfoRes.json();
     document.getElementById("username").textContent = userInfo.username;
-    document.getElementById("matches-played").textContent = userInfo.matches_played;  // <-- Fixed here
-    document.getElementById("matches-won").textContent = userInfo.matches_won;
-    document.querySelector(".profile-avatar").src = userInfo.ImgUrl;
+    document.getElementById("matches-played").textContent = userInfo.matches_played ?? 0;
+    document.getElementById("matches-won").textContent = userInfo.matches_won ?? 0;
 
-    // Fetch match history
-    const matchResponse = await fetch(`/api/profile/GetMatch`,{method:"GET"});
+    if (userInfo.ImgUrl && userInfo.ImgUrl.startsWith("/static/images/Icon/")) {
+      avatarElement.src = userInfo.ImgUrl;
+    } else {
+      avatarElement.src = "/static/images/defaultIcon.png";
+    }
+
+    const matchResponse = await fetch(`/api/profile/GetMatch`, { method: "GET" });
     const matchJson = await matchResponse.json();
     const matchData = matchJson.Match;
 
-    // Compute highest streak
     let streak = 0;
     let maxStreak = 0;
     for (const match of matchData) {
@@ -78,7 +77,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     document.getElementById("highest-streak").textContent = maxStreak;
 
-    // Render match history
     const matchList = document.getElementById("match-list");
     matchList.innerHTML = "";
 
@@ -86,10 +84,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       const isWinner = match.winner.user_id === userInfo.user_id;
       const badgeSrc = isWinner ? "Win.png" : "Lose.png";
 
-      // Filter out the current user from the opponents list
       const opponents = match.losers.filter(op => op.user_id !== userInfo.user_id);
       if (!isWinner) {
-        opponents.push(match.winner); // Add winner if you're a loser
+        opponents.push(match.winner);
       }
 
       const opponentsHTML = opponents.map(op => `

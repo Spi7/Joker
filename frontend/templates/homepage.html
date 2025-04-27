@@ -6,9 +6,7 @@
     <title>Dou Dizhu Lobby</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/homepage.css') }}"/>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
-    <link rel="icon"
-          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
-
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     <script src="{{ url_for('static', filename='js/homepage.js') }}" defer></script>
 </head>
@@ -58,11 +56,11 @@
 <div class="room-list">
     <h2>Available Rooms</h2>
     <div class="room-scroll">
-        <!--add by js -->
+        <!-- Added dynamically by JS -->
     </div>
 </div>
 
-<!-- Room full Modal -->
+<!-- Room Full Modal -->
 <div id="modal-overlay" class="modal-overlay hidden">
   <div class="room-card modal-box">
     <div class="room-info">
@@ -93,9 +91,10 @@
     <div class="modal-btn-container">
       <button id="close-rules" class="modal-close-btn">OK</button>
     </div>
+  </div>
 </div>
 
-<!-- 🔥 Reconnect Modal OUTSIDE -->
+<!--  Reconnect Modal -->
 <div id="reconnect-modal" class="modal-overlay hidden">
   <div class="modal-box">
     <div class="room-info">
@@ -107,7 +106,6 @@
     </div>
   </div>
 </div>
-
 
 </body>
 </html>

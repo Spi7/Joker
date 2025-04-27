@@ -81,31 +81,34 @@ window.addEventListener("pageshow", (event) => {
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
+  console.log("DOMContentLoaded triggered");
+
   let userInfo = await fetchCurrentUserOrRedirect();
   if (!userInfo) return;
 
   socket.emit("join_homepage");
   socket.emit("get_all_rooms");
 
-  if (justNavigatedFromGame) {
-    socket.emit("intentional_leave_room", {
-      user_id: userInfo.user_id
-    });
+  // Delay to ensure DOM fully ready and painted
+  requestAnimationFrame(() => {
+    setTimeout(async () => {
+      console.log("2s after DOMContentLoaded, running reconnect logic");
 
-  setTimeout(async () => {
-    await checkAndReconnectGame();
-  }, 1200);  // <-- small delay after intentional leave
-    justNavigatedFromGame = false; // reset
-  } else {
-    await checkAndReconnectGame();
-  }
+      if (justNavigatedFromGame) {
+        socket.emit("intentional_leave_room", {
+          user_id: userInfo.user_id
+        });
+        await checkAndReconnectGame();
+        justNavigatedFromGame = false;
+      } else {
+        await checkAndReconnectGame();
+      }
 
-  socket.emit("check_and_cleanup_user", { user_id: userInfo.user_id });
+      socket.emit("check_and_cleanup_user", { user_id: userInfo.user_id });
+    }, 100);  // you can tune this 2000ms down later if needed
+  });
 
-  // Join the homepage room
-  socket.emit("join_homepage"); // New: Join the homepage room
-  socket.emit("get_all_rooms"); // send a message to backend asking for the room list
-
+  // The rest of your button listeners
   const createRoomBtn = document.getElementById("create-room-btn");
   createRoomBtn?.addEventListener("click", async () => {
     const roomName = prompt("Enter room name:");
@@ -212,7 +215,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   socket.on("room_deleted", (data) => {
     socket.emit("get_all_rooms");
   });
-
 
   socket.on("error", (err) => {
     console.error("SocketIO Error:", err);
