@@ -69,6 +69,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (data.game_active) {
       console.log("Game already active, waiting for game_start...");
+      gameStarted = true;
       // The server will emit "game_start" to us, we just wait for it.
     } else {
       setTimeout(() => {
