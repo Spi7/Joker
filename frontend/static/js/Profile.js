@@ -1,105 +1,110 @@
 async function fetchCurrentUserOrRedirect() {
-  try {
-    const res = await fetch("/api/users/@me");
-    if (!res.ok) throw new Error("Not authenticated");
-    return await res.json();
-  } catch (err) {
-    console.error("Session invalid:", err);
-    window.location.href = "/login";
-  }
+    try {
+        const res = await fetch("/api/users/@me");
+        if (!res.ok) throw new Error("Not authenticated");
+        return await res.json();
+    } catch (err) {
+        console.error("Session invalid:", err);
+        window.location.href = "/login";
+    }
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const backButton = document.getElementById("go-home");
-  backButton.addEventListener("click", () => {
-    window.location.href = "/homepage";
-  });
+    const backButton = document.getElementById("go-home");
+    backButton.addEventListener("click", () => {
+        window.location.href = "/homepage";
+    });
 
-  let userInfo = await fetchCurrentUserOrRedirect() //check auth
-  if (!userInfo) {
-    return;
-  }
-  const editBtn = document.getElementById("edit-avatar-btn");
-  const uploadInput = document.getElementById("avatar-upload");
+    // Add logout button functionality
+    document.getElementById("logout-btn").addEventListener("click", () => {
+        window.location.href = "/logout";
+    });
 
-  editBtn.addEventListener("click", () => {
-    uploadInput.click();
-  });
+    let userInfo = await fetchCurrentUserOrRedirect() //check auth
+    if (!userInfo) {
+        return;
+    }
+    const editBtn = document.getElementById("edit-avatar-btn");
+    const uploadInput = document.getElementById("avatar-upload");
 
-  uploadInput.addEventListener("change", async (event) => {
-    const file = event.target.files[0];
-    if (!file) return;
+    editBtn.addEventListener("click", () => {
+        uploadInput.click();
+    });
 
-    const formData = new FormData();
-    formData.append("avatar", file);
+    uploadInput.addEventListener("change", async (event) => {
+        const file = event.target.files[0];
+        if (!file) return;
+
+        const formData = new FormData();
+        formData.append("avatar", file);
+
+        try {
+            const res = await fetch(`/api/profile/ChangeIcon`, {
+                method: "POST",
+                body: formData
+            });
+
+            const data = await res.json();
+            if (data.ImgUrl) {
+                document.querySelector(".profile-avatar").src = data.ImgUrl;
+            } else {
+                console.error("Invalid response from server:", data);
+            }
+        } catch (err) {
+            console.error("Failed to upload avatar:", err);
+        }
+    });
 
     try {
-      const res = await fetch(`/api/profile/ChangeIcon`, {
-        method: "POST",
-        body: formData
-      });
+        // Fetch user info
+        const userInfoRes = await fetch("/api/profile/GetUserInfo", {method: "GET"});
+        const userInfo = await userInfoRes.json();
+        document.getElementById("username").textContent = userInfo.username;
+        document.getElementById("matches-played").textContent = userInfo.MatchPlayed ?? 0;
+        document.getElementById("matches-won").textContent = userInfo.MatchWin ?? 0;
+        const avatarImg = document.querySelector(".profile-avatar");
+        if (userInfo.ImgUrl) {
+            avatarImg.src = userInfo.ImgUrl;
+        } else {
+            avatarImg.src = "/static/images/defaultIcon.png"; // ← or whatever your default path is
+        }
 
-      const data = await res.json();
-      if (data.ImgUrl) {
-        document.querySelector(".profile-avatar").src = data.ImgUrl;
-      } else {
-        console.error("Invalid response from server:", data);
-      }
-    } catch (err) {
-      console.error("Failed to upload avatar:", err);
-    }
-  });
+        // Fetch match history
+        const matchResponse = await fetch(`/api/profile/GetMatch`, {method: "GET"});
+        const matchJson = await matchResponse.json();
+        const matchData = matchJson.Match;
 
-  try {
-    // Fetch user info
-    const userInfoRes = await fetch("/api/profile/GetUserInfo",{method: "GET"});
-    const userInfo = await userInfoRes.json();
-    document.getElementById("username").textContent = userInfo.username;
-    document.getElementById("matches-played").textContent = userInfo.MatchPlayed ?? 0;
-    document.getElementById("matches-won").textContent = userInfo.MatchWin ?? 0;
-    const avatarImg = document.querySelector(".profile-avatar");
-    if (userInfo.ImgUrl) {
-      avatarImg.src = userInfo.ImgUrl;
-    } else {
-      avatarImg.src = "/static/images/defaultIcon.png"; // ← or whatever your default path is
-    }
+        // Compute highest streak
+        let streak = 0;
+        let maxStreak = 0;
+        for (const match of matchData) {
+            if (match.MatchResult === "Win") {
+                streak++;
+                maxStreak = Math.max(maxStreak, streak);
+            } else {
+                streak = 0;
+            }
+        }
+        document.getElementById("highest-streak").textContent = maxStreak;
 
-    // Fetch match history
-    const matchResponse = await fetch(`/api/profile/GetMatch`,{method:"GET"});
-    const matchJson = await matchResponse.json();
-    const matchData = matchJson.Match;
+        // Render match history
+        const matchList = document.getElementById("match-list");
+        matchList.innerHTML = "";
 
-    // Compute highest streak
-    let streak = 0;
-    let maxStreak = 0;
-    for (const match of matchData) {
-      if (match.MatchResult === "Win") {
-        streak++;
-        maxStreak = Math.max(maxStreak, streak);
-      } else {
-        streak = 0;
-      }
-    }
-    document.getElementById("highest-streak").textContent = maxStreak;
+        for (const match of matchData) {
+            const card = document.createElement("div");
+            card.className = "post-card horizontal-layout";
 
-    // Render match history
-    const matchList = document.getElementById("match-list");
-    matchList.innerHTML = "";
+            const badgeSrc = match.MatchResult === "Win" ? "Win.png" : "Lose.png";
 
-    for (const match of matchData) {
-      const card = document.createElement("div");
-      card.className = "post-card horizontal-layout";
-
-      const badgeSrc = match.MatchResult === "Win" ? "Win.png" : "Lose.png";
-
-      const opponentsHTML = match.opponents.map(op => `
+            const opponentsHTML = match.opponents.map(op => `
         <div class="opponent">
           <img src="${op.Img}" class="opponent-avatar" alt="${op.username}" />
           <div class="opponent-name">${op.username}</div>
         </div>
       `).join("");
 
-      card.innerHTML = `
+            card.innerHTML = `
         <div class="match-left">
           <img class="winloss-badge" src="${badgeSrc}" alt="${match.MatchResult}" />
         </div>
@@ -109,10 +114,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         <div class="match-right">${match.StartedTime}</div>
       `;
 
-      matchList.appendChild(card);
-    }
+            matchList.appendChild(card);
+        }
 
-  } catch (err) {
-    console.error("Failed to load profile or match history:", err);
-  }
+    } catch (err) {
+        console.error("Failed to load profile or match history:", err);
+    }
 });

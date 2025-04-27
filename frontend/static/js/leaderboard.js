@@ -3,13 +3,29 @@
  * Handles fetching and displaying leaderboard data with improved error handling
  */
 
-document.addEventListener('DOMContentLoaded', function() {
+async function fetchCurrentUserOrRedirect() {
+    try {
+        const res = await fetch("/api/users/@me");
+        if (!res.ok) throw new Error("Not authenticated");
+        return await res.json();
+    } catch (err) {
+        console.error("Session invalid:", err);
+        window.location.href = "/login";
+    }
+}
+
+document.addEventListener('DOMContentLoaded', async function () {
+    let userInfo = await fetchCurrentUserOrRedirect() //check auth
+    if (!userInfo) {
+        return;
+    }
+
     fetchLeaderboardData();
 
     // Add refresh button functionality
     const refreshButton = document.getElementById('refresh-leaderboard');
     if (refreshButton) {
-        refreshButton.addEventListener('click', function() {
+        refreshButton.addEventListener('click', function () {
             fetchLeaderboardData(true);
         });
     }
