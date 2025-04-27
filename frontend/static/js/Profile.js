@@ -82,7 +82,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     for (const match of matchData) {
       const isWinner = match.winner.user_id === userInfo.user_id;
-      const badgeSrc = isWinner ? "Win.png" : "Lose.png";
+      const badgeSrc = isWinner ? "/static/images/Win.png" : "/static/images/Lose.png";
 
       const opponents = match.losers.filter(op => op.user_id !== userInfo.user_id);
       if (!isWinner) {
