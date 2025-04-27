@@ -68,14 +68,6 @@ async function fetchLeaderboardData(showLoading = true) {
         }
 
         const data = await response.json();
-
-        // Update timestamp if element exists
-        const timestampElement = document.getElementById('last-updated');
-        if (timestampElement && data.last_updated) {
-            const date = new Date(data.last_updated);
-            timestampElement.textContent = `Last updated: ${date.toLocaleString()}`;
-        }
-
         displayWinLeaderboard(data.win_rankings);
         displayStreakLeaderboard(data.streak_rankings);
     } catch (error) {

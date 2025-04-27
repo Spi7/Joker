@@ -30,11 +30,6 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-    const backButton = document.getElementById("go-home");
-    backButton.addEventListener("click", () => {
-        window.location.href = "/homepage";
-    });
-
     // Add logout button functionality
     document.getElementById("logout-btn").addEventListener("click", () => {
         window.location.href = "/logout";

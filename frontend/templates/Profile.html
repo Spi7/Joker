@@ -5,6 +5,8 @@
     <title>Profile Page</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='css/Profile.css') }}">
     <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
     <script src="{{ url_for('static', filename='js/Profile.js') }}" defer></script>
 </head>
 <body>
@@ -28,16 +30,6 @@
         </a>
     </div>
 </nav>
-<div class="profile-header-bar">
-    <div class="back-button" id="go-home">
-        &#8592;
-    </div>
-    <span class="header-title">Profile</span>
-    <button class="logout-btn poker-style" id="logout-btn">
-        <span class="card-symbol">♠</span>
-        Logout
-    </button>
-</div>
 <div class="profile-container-modern">
     <div class="profile-header">
         <div class="profile-content">
@@ -78,9 +70,13 @@
                     </div>
                 </div>
             </div>
-
         </div>
     </div>
+    <!-- Logout button moved to the bottom-right corner -->
+    <button class="logout-btn poker-style" id="logout-btn">
+        <span class="card-symbol">♠</span>
+        Logout
+    </button>
 </div>
 </body>
 </html>
