@@ -4,8 +4,6 @@ services:
     volumes:
       - .:/app
       - ./logs:/app/logs
-    environment:
-      - FLASK_ENV=production
     depends_on:
       - mongo
 
