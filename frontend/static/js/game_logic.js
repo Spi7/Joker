@@ -269,7 +269,7 @@ export function displayCenterCards(cards) {
   document.body.appendChild(centerDisplay);
 }
 
-export function handleGameOver(winner_id, username, onContinueCallback) {
+export function handleGameOver(winner_id, username) {
   // 1. Freeze actions
   document.querySelectorAll(".take-button").forEach(btn => btn.disabled = true);
   const sendBtn = document.getElementById("send-button");
@@ -296,30 +296,31 @@ export function handleGameOver(winner_id, username, onContinueCallback) {
   winnerText.style.fontSize = "32px";
   winnerText.style.marginBottom = "20px";
 
-  const continueBtn = document.createElement("button");
-  continueBtn.textContent = "Continue";
-  continueBtn.style.margin = "10px";
-
   const leaveBtn = document.createElement("button");
-  leaveBtn.textContent = "Leave";
+  let countdown = 10;
+  leaveBtn.textContent = `Leave (${countdown})`;
   leaveBtn.style.margin = "10px";
 
   overlay.appendChild(winnerText);
-  overlay.appendChild(continueBtn);
   overlay.appendChild(leaveBtn);
   document.body.appendChild(overlay);
 
-  continueBtn.addEventListener("click", () => {
-    overlay.remove();
-    if (onContinueCallback) {
-      onContinueCallback(); // Trigger the callback from gamepage.js
+  const countdownInterval = setInterval(() => {
+    countdown--;
+    leaveBtn.textContent = `Leave (${countdown})`;
+    if (countdown <= 0) {
+      clearInterval(countdownInterval);
+      leaveBtn.click();
     }
-  });
+  }, 1000);
 
   leaveBtn.addEventListener("click", () => {
+    clearInterval(countdownInterval); // Prevent multiple redirects
     window.location.href = "/homepage";
   });
 }
+
+
 
 export function selectCard(cardElement, cardValue) {
   const isSelected = cardElement.classList.contains("selected");
