@@ -7,11 +7,22 @@ services:
       - ./logs:/app/logs
     depends_on:
       - mongo
+    networks:
+      - joker_net
+    expose:
+      - "8080"   
 
   mongo:
     image: mongo:4.2.5
     volumes:
       - mongo-data:/data/db
+    networks:
+      - joker_net
 
 volumes:
   mongo-data:
+
+networks:
+  joker_net:
+    driver: bridge
+
