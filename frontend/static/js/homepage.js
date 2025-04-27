@@ -13,20 +13,57 @@ async function fetchCurrentUserOrRedirect() {
 
 async function checkAndReconnectGame() {
   try {
-    const res = await fetch(`/api/game/CheckUserInGame`);
+    // First attempt with error handling
+    let res;
+    try {
+      res = await fetch(`/api/game/CheckUserInGame`, {
+        headers: {
+          'Cache-Control': 'no-cache' // Prevent caching of the response
+        }
+      });
+      if (!res.ok) throw new Error(`HTTP error! status: ${res.status}`);
+    } catch (err) {
+      console.error("Initial check failed:", err);
+      // Retry once after short delay
+      await new Promise(resolve => setTimeout(resolve, 500));
+      res = await fetch(`/api/game/CheckUserInGame`);
+    }
+
     const data = await res.json();
-    console.log("[Reconnect Debug] check_user_in_game API result:", data);
+    console.log("[Reconnect] Game status:", data);
+
     if (data.inGame) {
       const reconnectModal = document.getElementById("reconnect-modal");
+      const okButton = document.getElementById("reconnect-ok");
+
+      // Prevent duplicate event listeners
+      okButton.replaceWith(okButton.cloneNode(true));
+      const freshButton = document.getElementById("reconnect-ok");
+
+      freshButton.onclick = () => {
+        window.location.href = `/game?room_id=${data.room_id}&room_name=${encodeURIComponent(data.room_name)}`;
+      };
+
       reconnectModal.classList.remove("hidden");
 
-      const okButton = document.getElementById("reconnect-ok");
-      okButton.addEventListener("click", () => {
-        window.location.href = `/game?room_id=${data.room_id}&room_name=${encodeURIComponent(data.room_name)}`;
-      });
+      // Auto-redirect after 8 seconds if user doesn't act
+      setTimeout(() => {
+        if (!reconnectModal.classList.contains("hidden")) {
+          freshButton.click();
+        }
+      }, 8000);
+
+      // If coming from game page, ensure we're not in a stale state
+      if (document.referrer.includes("/game")) {
+        await fetch('/api/game/CleanupStaleSession', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' }
+        }).catch(e => console.log("Cleanup error:", e));
+      }
     }
   } catch (err) {
     console.error("Failed to check active game:", err);
+    // No UI feedback needed as this is a background check
   }
 }
 
@@ -55,9 +92,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       user_id: userInfo.user_id
     });
 
-    setTimeout(async () => {
-      await checkAndReconnectGame();
-    }, 500);  // <-- small delay after intentional leave
+  setTimeout(async () => {
+    await checkAndReconnectGame();
+  }, 1200);  // <-- small delay after intentional leave
     justNavigatedFromGame = false; // reset
   } else {
     await checkAndReconnectGame();
@@ -192,28 +229,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   socket.on("room_deleted", (data) => {
-    const roomlist = document.querySelector(".room-scroll");
-    const toRemove = [...roomlist.children].find((card) =>
-      card.querySelector(".join-btn")?.dataset.roomId === data.room_id
-    );
-    if (toRemove) roomlist.removeChild(toRemove);
-
-    const remainingCards = roomlist.querySelectorAll(".room-card");
-    let noRoomMsg = roomlist.querySelector(".no-room");
-
-    if (remainingCards.length === 0) {
-      if (!noRoomMsg) {
-        noRoomMsg = document.createElement("p");
-        noRoomMsg.className = "no-room";
-        noRoomMsg.textContent = "No rooms available. Be the first to create one!";
-        roomlist.appendChild(noRoomMsg);
-      }
-    } else {
-      if (noRoomMsg) {
-        noRoomMsg.remove();
-      }
-    }
+    socket.emit("get_all_rooms");
   });
+
 
   socket.on("error", (err) => {
     console.error("SocketIO Error:", err);

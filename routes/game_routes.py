@@ -19,16 +19,14 @@ def check_user_in_game():
 
     user_id = user["user_id"]
 
+    # Only check database
     room = RoomCollection.find_one({
         "players": user_id,
         "game_active": True
     })
 
-    if room:
-        return jsonify({
-            "inGame": True,
-            "room_id": room["room_id"],
-            "room_name": room["room_name"]
-        })
-    else:
-        return jsonify({"inGame": False})
+    return jsonify({
+        "inGame": bool(room),
+        "room_id": room["room_id"] if room else None,
+        "room_name": room["room_name"] if room else None
+    })

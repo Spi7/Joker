@@ -41,18 +41,7 @@
   <div class="room-list">
     <h2>Available Rooms</h2>
     <div class="room-scroll">
-      {% for room in rooms %}
-        <div class="room-card">
-          <div class="room-info">
-            <p class="room-name">Room {{ room.id }}</p>
-            <p class="room-players">Players: {{ room.players | length }}/3</p>
-          </div>
-          <a href="/join-room/{{ room.id }}" class="join-btn">Join</a>
-        </div>
-      {% endfor %}
-{#      {% if rooms|length == 0 %}#}
-{#        <p class="no-room">No rooms available. Be the first to create one!</p>#}
-{#      {% endif %}#}
+        <!--add by js -->
     </div>
   </div>
 

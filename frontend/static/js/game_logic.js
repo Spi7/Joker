@@ -269,7 +269,7 @@ export function displayCenterCards(cards) {
   document.body.appendChild(centerDisplay);
 }
 
-export function handleGameOver(winner_id, username) {
+export function handleGameOver(winner_id, username, onContinueCallback) {
   // 1. Freeze actions
   document.querySelectorAll(".take-button").forEach(btn => btn.disabled = true);
   const sendBtn = document.getElementById("send-button");
@@ -311,7 +311,9 @@ export function handleGameOver(winner_id, username) {
 
   continueBtn.addEventListener("click", () => {
     overlay.remove();
-    window.location.reload();
+    if (onContinueCallback) {
+      onContinueCallback(); // Trigger the callback from gamepage.js
+    }
   });
 
   leaveBtn.addEventListener("click", () => {

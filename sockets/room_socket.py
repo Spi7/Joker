@@ -4,7 +4,7 @@ from flask_socketio import emit, join_room, leave_room
 from threading import Timer
 from Database import RoomCollection, UserInfo
 
-from sockets.game_logic import start_game_for_room, handle_take_card, handle_send_cards, handle_win_game
+from sockets.game_logic import start_game_for_room, handle_take_card, handle_send_cards, handle_win_game, room_decks
 
 #map {sid: {user_id, room_id}, ...}
 users_in_room = {}
@@ -34,23 +34,56 @@ def register_room_handlers(socketio):
         room_id = user_info["room_id"]
 
         def finalize_disconnect():
-            # print(f"[Timeout] Finalizing disconnect: {request.sid}") <-- error print, old sid might be dead already
+            # Get fresh room data to avoid stale state
+            room = RoomCollection.find_one({"room_id": room_id})
+            if not room:
+                # Cleanup if room doesn't exist anymore
+                users_in_room.pop(request.sid, None)
+                disconnect_timers.pop(request.sid, None)
+                return
+
+            # Check if user is still in the room (might have been removed by another event)
+            if user_id not in room.get("players", []):
+                users_in_room.pop(request.sid, None)
+                disconnect_timers.pop(request.sid, None)
+                return
+
+            # Always keep player in room if game is active
+            if room.get("game_active", False):
+                print(f"[Timeout Protect] {user_id} remains in active game {room_id}")
+
+                # Ensure user stays in users_in_room for potential reconnect
+                if request.sid not in users_in_room:
+                    users_in_room[request.sid] = {"user_id": user_id, "room_id": room_id}
+
+                disconnect_timers.pop(request.sid, None)
+
+                # Notify others the player is temporarily disconnected
+                emit("player_disconnected", {
+                    "user_id": user_id,
+                    "room_id": room_id
+                }, room=room_id, include_self=False)
+                return
+
+            # === Only proceed with removal if game is NOT active ===
+            # Clean up user from tracking
             users_in_room.pop(request.sid, None)
             disconnect_timers.pop(request.sid, None)
 
+            # Remove from database if still present
             RoomCollection.update_one(
                 {"room_id": room_id},
                 {"$pull": {"players": user_id}}
             )
 
+            # Get fresh room data after update
             updated_room = RoomCollection.find_one({"room_id": room_id})
             if not updated_room:
                 return
 
             remaining_players = updated_room.get("players", [])
-            if user_id not in remaining_players and len(remaining_players) > 0:
-                return
 
+            # Clean up empty rooms
             if len(remaining_players) == 0:
                 result = RoomCollection.delete_one({"room_id": room_id, "players": []})
                 if result.deleted_count > 0:
@@ -58,27 +91,33 @@ def register_room_handlers(socketio):
                     emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)
                 return
 
-            user_map = {
-                pid: {
-                    "username": user.get("username", f"User {pid[:4]}"),
-                    "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
+            # Only notify if user was actually removed
+            if user_id not in remaining_players:
+                # Clean up ready status
+                if room_id in ready_status and user_id in ready_status[room_id]:
+                    ready_status[room_id].pop(user_id)
+
+                user_map = {
+                    pid: {
+                        "username": user.get("username", f"User {pid[:4]}"),
+                        "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
+                    }
+                    for pid in remaining_players
+                    if (user := UserInfo.find_one({"user_id": pid}))
                 }
-                for pid in remaining_players
-                if (user := UserInfo.find_one({"user_id": pid}))
-            }
 
-            emit("player_left", {
-                "room_id": room_id,
-                "user_id": user_id,
-                "players": remaining_players,
-                "user_map": user_map
-            }, room=room_id)
+                emit("player_left", {
+                    "room_id": room_id,
+                    "user_id": user_id,
+                    "players": remaining_players,
+                    "user_map": user_map
+                }, room=room_id)
 
-            emit("room_updated", {
-                "room_id": room_id,
-                "room_name": updated_room["room_name"],
-                "players": remaining_players
-            }, room="homepage")
+                emit("room_updated", {
+                    "room_id": room_id,
+                    "room_name": updated_room["room_name"],
+                    "players": remaining_players
+                }, room="homepage")
 
         timer = Timer(5.0, finalize_disconnect)
         timer.start()
@@ -95,16 +134,26 @@ def register_room_handlers(socketio):
             return
 
         room_id = user_info["room_id"]
+
         timer = disconnect_timers.pop(sid, None)
         if timer:
             timer.cancel()
+
+        room = RoomCollection.find_one({"room_id": room_id})
+        if not room:
+            return
+
+        if room.get("game_active", False):
+            print(f"[Intentional Leave] {user_id} left during active game {room_id}. Keeping in DB for reconnect.")
+            return
+
 
         RoomCollection.update_one(
             {"room_id": room_id},
             {"$pull": {"players": user_id}}
         )
 
-        #update ready status
+        # Update ready status
         if room_id in ready_status and user_id in ready_status[room_id]:
             ready_status[room_id].pop(user_id)
 
@@ -196,7 +245,6 @@ def register_room_handlers(socketio):
             print(f"Error in create_room: {str(e)}")
             emit("error", {"message": "Failed to create room"}, room=request.sid)
 
-
     @socketio.on("join_room")
     def handle_join_room(user_data):
         try:
@@ -210,17 +258,18 @@ def register_room_handlers(socketio):
                 return
 
             players = room.get("players", [])
-            if user_id in players:
-                join_room(room_id)
-                users_in_room[request.sid] = {"user_id": user_id, "room_id": room_id}
 
-                # remove old timer
+            if user_id in players:
+                # Remove old timer and old sid (BEFORE setting users_in_room)
                 for sid, info in list(users_in_room.items()):
-                    if sid != request.sid and info["user_id"] == user_id:
+                    if info["user_id"] == user_id:
                         old_timer = disconnect_timers.pop(sid, None)
                         if old_timer:
                             old_timer.cancel()
                         users_in_room.pop(sid, None)
+
+                join_room(room_id)
+                users_in_room[request.sid] = {"user_id": user_id, "room_id": room_id}
 
                 user_map = {
                     pid: {
@@ -236,22 +285,25 @@ def register_room_handlers(socketio):
                     "room_name": room["room_name"],
                     "players": players,
                     "user_map": user_map,
-                    "game_active": room.get("game_active", False) #new added for refresh to game start
+                    "game_active": room.get("game_active", False)  # new added for refresh to game start
                 }, room=request.sid)
 
-                # get the same cards for this user
+                # Check if the game is active
                 if room.get("game_active"):
-                    hands = room.get("hands", {})
-                    if user_id in hands:
+                    if room_id in room_decks and user_id in room_decks[room_id]:
+                        your_hand = room_decks[room_id][user_id]
+                        opponent_card_counts = [
+                            {"user_id": pid, "count": len(room_decks[room_id][pid])}
+                            for pid in players if pid != user_id
+                        ]
+                        # Send user's most recent hand (deck) when they reconnect
                         emit("game_start", {
-                            "your_hand": hands[user_id],
-                            "opponent_card_counts": [
-                                {"user_id": pid, "count": len(hands[pid])}
-                                for pid in players if pid != user_id
-                            ]
+                            "your_hand": your_hand,
+                            "opponent_card_counts": opponent_card_counts
                         }, room=request.sid)
                 return
 
+            # If room is full, prevent joining
             if len(players) >= 3:
                 emit("error", {"message": "Room is full"}, room=request.sid)
                 return
@@ -261,7 +313,7 @@ def register_room_handlers(socketio):
                 {"$addToSet": {"players": user_id}}
             )
 
-            #reset ready status
+            # Reset ready status
             if room_id not in ready_status:
                 ready_status[room_id] = {}
             ready_status[room_id][user_id] = False
@@ -382,7 +434,7 @@ def register_room_handlers(socketio):
 
     @socketio.on("game_win")
     def win_game():
-        handle_win_game(socketio, users_in_room, request.sid)
+        handle_win_game(socketio, users_in_room, ready_status, request.sid)
 
     @socketio.on("check_and_cleanup_user")
     def check_and_cleanup_user(data):

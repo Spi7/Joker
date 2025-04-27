@@ -112,7 +112,7 @@ def handle_send_cards(socketio, users_in_room, sid, data):
     }, room=room_id)
 
 
-def handle_win_game(socketio, users_in_room, sid):
+def handle_win_game(socketio, users_in_room, ready_status, sid):
     user_info = users_in_room.get(sid)
     if not user_info:
         return
@@ -167,23 +167,26 @@ def handle_win_game(socketio, users_in_room, sid):
         "timestamp": datetime.utcnow()
     })
 
+    #ready state set back to default
+    # Reset ready status for all players
+    for pid in room_decks[room_id]:
+        ready_status[room_id][pid] = False
+
+    # Emit updated ready status
+    socketio.emit("update_ready_status", [
+        {"user_id": pid, "isReady": False} for pid in room_decks[room_id]
+    ], room=room_id)
+
     socketio.emit("game_over", {"winner_id": user_id, "username": username}, room=room_id)
 
     # Cleanup memory after game ends
     if room_id in room_decks:
         del room_decks[room_id]
 
-    if room_id in room_decks:
-        del room_decks[room_id]
-
-    #  Now destroy the room itself from database
-    result = RoomCollection.delete_one({"room_id": room_id})
-    if result.deleted_count > 0:
-        print(f"[Game End] Room {room_id} deleted.")
-
-    # broadcast to homepage if needed
-    socketio.emit("room_deleted", {"room_id": room_id}, broadcast=True)
-    socketio.emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)
+    RoomCollection.update_one(
+        {"room_id": room_id},
+        {"$set": {"game_active": False}}
+    )
 
 def get_player_hand(room_id, user_id):
     if room_id in room_decks and user_id in room_decks[room_id]:

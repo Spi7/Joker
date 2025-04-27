@@ -68,13 +68,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     updatePlayerList(data.players, user.user_id, data.user_map);
 
     if (data.game_active) {
-      gameStarted = true;  // 🔥 <-- ADD THIS LINE
+      console.log("Game already active, waiting for game_start...");
+      // The server will emit "game_start" to us, we just wait for it.
     } else {
       setTimeout(() => {
         socket.emit("get_ready_status");
       }, 100);
     }
   });
+
 
 
   socket.on("update_ready_status", (statusList) => {
@@ -90,13 +92,82 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
 
+  socket.on("game_over", ({ winner_id, username }) => {
+    handleGameOver(winner_id, username, async () => {
+      // 1. Remove old hand
+      const bottomHand = document.querySelector(".bottom-hand");
+      if (bottomHand) bottomHand.remove();
+
+      // 2. Remove center display cards
+      const centerCard = document.querySelector(".center-card-display");
+      if (centerCard) centerCard.remove();
+
+      const sendButtonContainer = document.querySelector(".send-button-container");
+      if (sendButtonContainer) sendButtonContainer.remove();
+
+      // 3. Remove all "Take" buttons
+      document.querySelectorAll(".take-button").forEach(button => button.remove());
+
+      // 4. Remove all card-count displays
+      document.querySelectorAll(".player-slot .card-count").forEach(cardCount => cardCount.remove());
+
+      // 5. Restore "Ready" button container
+      const oldReadyButtonContainer = document.querySelector(".ready-button-container");
+      if (!oldReadyButtonContainer) {
+        const readyButtonContainer = document.createElement("div");
+        readyButtonContainer.className = "ready-button-container";
+
+        const readyButton = document.createElement("button");
+        readyButton.className = "ready-button";
+        readyButton.textContent = "Ready?";
+
+        readyButton.addEventListener("click", () => {
+          isReady = !isReady;
+          socket.emit("player_ready", { ready: isReady });
+          readyButton.textContent = isReady ? "Unready" : "Ready?";
+          readyButton.classList.toggle("ready", !isReady);
+          readyButton.classList.toggle("unready", isReady);
+        });
+
+        readyButtonContainer.appendChild(readyButton);
+        document.body.appendChild(readyButtonContainer);
+      }
+
+      // 6. Restore "Ready" statuses under player slots
+      document.querySelectorAll(".player-slot").forEach(slot => {
+        let readyStatusEl = slot.querySelector(".ready-status");
+        if (!readyStatusEl) {
+          readyStatusEl = document.createElement("div");
+          readyStatusEl.className = "ready-status";
+          readyStatusEl.textContent = "[Not Ready]";
+          slot.appendChild(readyStatusEl);
+        }
+      });
+
+      // 7. Intentional leave and rejoin
+      socket.emit("intentional_leave_room", { user_id: currentUserId });
+
+      const urlParams = new URLSearchParams(window.location.search);
+      const roomId = urlParams.get("room_id");
+
+      const user = await fetchCurrentUserOrRedirect();
+      if (!user) return;
+
+      socket.emit("join_room", {
+        user_id: user.user_id,
+        username: user.username,
+        room_id: roomId
+      });
+
+      gameStarted = false;
+
+    });
+  });
+
   socket.on("card_send", ({ user, newdeck, card_send }) => {
     handleSendCard(user, newdeck, card_send, currentUserId, socket);
   });
 
-  socket.on("game_over", ({ winner_id, username }) => {
-    handleGameOver(winner_id, username);
-  });
   // ===========================================================================
 
   //waiting for game_start
@@ -115,12 +186,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   // If user clicks back button (NOT a refresh), inform server
   window.addEventListener("popstate", async () => {
     if (justReloaded) return;
+
     const res = await fetch("/api/users/@me");
     if (res.ok) {
       const user = await res.json();
       socket.emit("intentional_leave_room", {
         user_id: user.user_id
       });
+
+      // New: after intentional leave, go to homepage (homepage will automatically detect and show reconnect modal)
+      window.location.href = "/homepage";
     }
   });
 });

@@ -38,16 +38,15 @@ def log_request_info():
     app.logger.info(f"Request: {client_ip} {method} {path}")
 
 #===================================Blueprint and Auth===========================================
+socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
+#later for production
+# socketio = SocketIO(app, cors_allowed_origins=["https://yourdomain.com"])
+
 app.secret_key = os.environ.get('SECRET_KEY') or 'dev_key_only_for_development'
 app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(blueprint)
-
 app.register_blueprint(game_blueprint)
-
-socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
-#later for production
-# socketio = SocketIO(app, cors_allowed_origins=["https://yourdomain.com"])
 
 #room handles
 from sockets.room_socket import register_room_handlers
