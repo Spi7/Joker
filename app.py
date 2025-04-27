@@ -84,7 +84,7 @@ def profile():
 
 @app.route("/leaderboard")
 def leaderboard():
-    return redirect(url_for("leaderboard.leaderboard_page"))
+    return render_template("leaderboard.html")
 
 
 if __name__ == "__main__":

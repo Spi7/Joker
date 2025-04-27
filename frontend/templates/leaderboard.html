@@ -11,7 +11,11 @@
     <main>
         <div class="leaderboard-container">
             <div class="leaderboard-section">
-                <h2 class="leaderboard-title">Top Players by Wins</h2>
+                <div class="section-header">
+                    <h2 class="leaderboard-title">Top Players by Wins</h2>
+                    <button id="refresh-leaderboard" class="refresh-button">Refresh</button>
+                </div>
+                <p id="last-updated" class="timestamp">Last updated: Loading...</p>
                 <div id="win-leaderboard">
                     <div class="loading">Loading leaderboard data...</div>
                 </div>

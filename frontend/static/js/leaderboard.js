@@ -1,29 +1,52 @@
 /**
  * Leaderboard JavaScript
- * Handles fetching and displaying leaderboard data
+ * Handles fetching and displaying leaderboard data with improved error handling
  */
 
 document.addEventListener('DOMContentLoaded', function() {
     fetchLeaderboardData();
+
+    // Add refresh button functionality
+    const refreshButton = document.getElementById('refresh-leaderboard');
+    if (refreshButton) {
+        refreshButton.addEventListener('click', function() {
+            fetchLeaderboardData(true);
+        });
+    }
 });
 
 /**
  * Fetch leaderboard data from the API
+ * @param {boolean} showLoading - Whether to show loading indicators
  */
-async function fetchLeaderboardData() {
+async function fetchLeaderboardData(showLoading = true) {
+    if (showLoading) {
+        document.getElementById('win-leaderboard').innerHTML = '<div class="loading">Loading leaderboard data...</div>';
+        document.getElementById('streak-leaderboard').innerHTML = '<div class="loading">Loading leaderboard data...</div>';
+    }
+
     try {
         const response = await fetch('/api/leaderboard/rankings');
         if (!response.ok) {
-            throw new Error('Failed to fetch leaderboard data');
+            throw new Error(`Server returned ${response.status}: ${response.statusText}`);
         }
 
         const data = await response.json();
+
+        // Update timestamp if element exists
+        const timestampElement = document.getElementById('last-updated');
+        if (timestampElement && data.last_updated) {
+            const date = new Date(data.last_updated);
+            timestampElement.textContent = `Last updated: ${date.toLocaleString()}`;
+        }
+
         displayWinLeaderboard(data.win_rankings);
         displayStreakLeaderboard(data.streak_rankings);
     } catch (error) {
         console.error('Error:', error);
-        document.getElementById('win-leaderboard').innerHTML = '<p>Error loading leaderboard data. Please try again later.</p>';
-        document.getElementById('streak-leaderboard').innerHTML = '<p>Error loading leaderboard data. Please try again later.</p>';
+        const errorMessage = '<div class="error-message">Error loading leaderboard data. Please try again later.</div>';
+        document.getElementById('win-leaderboard').innerHTML = errorMessage;
+        document.getElementById('streak-leaderboard').innerHTML = errorMessage;
     }
 }
 
@@ -35,7 +58,7 @@ function displayWinLeaderboard(players) {
     const container = document.getElementById('win-leaderboard');
 
     if (!players || players.length === 0) {
-        container.innerHTML = '<p>No player data available.</p>';
+        container.innerHTML = '<p class="no-data">No player data available.</p>';
         return;
     }
 
@@ -54,19 +77,23 @@ function displayWinLeaderboard(players) {
     `;
 
     players.forEach((player, index) => {
-        const winRate = player.MatchPlayed > 0
-            ? ((player.MatchWin / player.MatchPlayed) * 100).toFixed(1) + '%'
+        // Handle potential missing data with defaults
+        const wins = player.MatchWin || 0;
+        const matches = player.MatchPlayed || 0;
+        const winRate = matches > 0
+            ? ((wins / matches) * 100).toFixed(1) + '%'
             : '0%';
+        const imgUrl = player.ImgUrl || '/static/images/Icon/defaultIcon.png';
 
         tableHTML += `
             <tr>
                 <td class="rank">#${index + 1}</td>
                 <td class="player">
-                    <img src="${player.ImgUrl}" alt="${player.username}" class="player-avatar">
+                    <img src="${imgUrl}" alt="${player.username}" class="player-avatar">
                     <span>${player.username}</span>
                 </td>
-                <td>${player.MatchWin}</td>
-                <td>${player.MatchPlayed}</td>
+                <td>${wins}</td>
+                <td>${matches}</td>
                 <td>${winRate}</td>
             </tr>
         `;
@@ -88,7 +115,7 @@ function displayStreakLeaderboard(players) {
     const container = document.getElementById('streak-leaderboard');
 
     if (!players || players.length === 0) {
-        container.innerHTML = '<p>No player data available.</p>';
+        container.innerHTML = '<p class="no-data">No player data available.</p>';
         return;
     }
 
@@ -99,20 +126,24 @@ function displayStreakLeaderboard(players) {
                     <th>Rank</th>
                     <th>Player</th>
                     <th>Best Win Streak</th>
+                    <th>Current Streak</th>
                 </tr>
             </thead>
             <tbody>
     `;
 
     players.forEach((player, index) => {
+        const imgUrl = player.ImgUrl || '/static/images/Icon/defaultIcon.png';
+
         tableHTML += `
             <tr>
                 <td class="rank">#${index + 1}</td>
                 <td class="player">
-                    <img src="${player.ImgUrl}" alt="${player.username}" class="player-avatar">
+                    <img src="${imgUrl}" alt="${player.username}" class="player-avatar">
                     <span>${player.username}</span>
                 </td>
-                <td>${player.max_win_streak}</td>
+                <td>${player.max_win_streak || 0}</td>
+                <td>${player.current_streak || 0}</td>
             </tr>
         `;
     });
