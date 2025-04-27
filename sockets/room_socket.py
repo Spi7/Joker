@@ -4,7 +4,7 @@ from flask_socketio import emit, join_room, leave_room
 from threading import Timer
 from Database import RoomCollection, UserInfo
 
-from sockets.game_logic import start_game_for_room, handle_take_card
+from sockets.game_logic import start_game_for_room, handle_take_card, handle_send_cards, handle_win_game
 
 #map {sid: {user_id, room_id}, ...}
 users_in_room = {}
@@ -370,6 +370,19 @@ def register_room_handlers(socketio):
             status_list.append({"user_id": pid, "username": username, "isReady": ready})
 
         emit("update_ready_status", status_list, room=request.sid)
+
+    #new added for game_play
+    @socketio.on("take_card")
+    def handle_take_card_event(data):
+        handle_take_card(socketio, users_in_room, request.sid, data)
+
+    @socketio.on("send_cards")
+    def handle_send_cards_event(data):
+        handle_send_cards(socketio, users_in_room, request.sid, data)
+
+    @socketio.on("game_win")
+    def win_game():
+        handle_win_game(socketio, users_in_room, request.sid)
 
     @socketio.on("check_and_cleanup_user")
     def check_and_cleanup_user(data):

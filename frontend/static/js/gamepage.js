@@ -1,8 +1,7 @@
-import { handleGameStart } from "./game_logic.js";
+import { handleGameStart, convertCardToFilename, handleTakeCard, handleSendCard, handleGameOver, displayCenterCards } from "./game_logic.js";
 
 const socket = io(); // Automatically uses existing WebSocket
 let gameStarted = false;
-
 let justReloaded = true;
 window.addEventListener("DOMContentLoaded", () => {
   setTimeout(() => {
@@ -82,6 +81,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.log("Readiness status:", statusList);
     updateReadyStatus(statusList);
   });
+
+  // ========================== NEW added =====================================
+  socket.on("taking_card", (decks) => {
+    console.log("Received taking_card:", decks);
+    handleTakeCard(decks, user, socket);
+  });
+
+
+
+  socket.on("card_send", ({ user, newdeck, card_send }) => {
+    handleSendCard(user, newdeck, card_send, currentUserId, socket);
+  });
+
+  socket.on("game_over", ({ winner_id, username }) => {
+    handleGameOver(winner_id, username);
+  });
+  // ===========================================================================
 
   //waiting for game_start
   socket.on("game_start", (data) => {

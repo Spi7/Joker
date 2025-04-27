@@ -1,3 +1,5 @@
+let selectedCards = [];
+let selectedElements = [];
 
 //Convert card to actual card css
 export function convertCardToFilename(card) {
@@ -42,10 +44,44 @@ export function handleGameStart (data, currentUserId, socket) {
     const readyBtnContainer = document.querySelector(".ready-button-container");
     if (readyBtnContainer) readyBtnContainer.remove();
 
+    const oldHand = document.querySelector(".bottom-hand");
+    if (oldHand) oldHand.remove();
+
     // Remove the "Ready state" shown beneath players username too
     document.querySelectorAll(".player-slot .ready-status").forEach(el => {
         el.remove();
     });
+
+    //Select the send button
+    const sendButtonContainer = document.querySelector(".send-button-container");
+    const sendButton = document.getElementById("send-button");
+    if (sendButtonContainer) sendButtonContainer.style.display = "block";
+
+    sendButton.replaceWith(sendButton.cloneNode(true));
+const newSendButton = document.getElementById("send-button");
+
+    // Add event listener for Send button
+    newSendButton.addEventListener("click", () => {
+      if (selectedCards.length == 2) {
+          const num1 = selectedCards[0].slice(0, -1);
+          const num2 = selectedCards[1].slice(0, -1);
+
+          if (num1 !== num2) {
+              console.log("Selected cards do not match! Cannot send.");
+              return; // ✋ do nothing if not matching
+          }
+
+          // Now safe to send
+          console.log("Sending cards:", selectedCards);
+          socket.emit("send_cards", {cards: selectedCards});
+
+          // After sending, reset selection
+          selectedElements.forEach(el => el.classList.remove("selected"));
+          selectedCards = [];
+          selectedElements = [];
+      }
+    });
+
 
     // Display player's hand
     const handContainer = document.createElement("div");
@@ -53,6 +89,7 @@ export function handleGameStart (data, currentUserId, socket) {
 
     const handRow = document.createElement("div");
     handRow.className = "card-row";
+
 
     //show your hand first
     your_hand.forEach((card, index) => {
@@ -66,7 +103,17 @@ export function handleGameStart (data, currentUserId, socket) {
 
         cardEl.appendChild(img);
         handRow.appendChild(cardEl);
+
+        cardEl.addEventListener("click", () => {
+          selectCard(cardEl, card); // 👈 Add this line!
+        });
     });
+
+    const totalWidth =  (handRow.children.length - 1) * 36;
+    handRow.style.width = `${totalWidth}px`;
+
+    handContainer.appendChild(handRow);
+    document.body.appendChild(handContainer);
 
     //then show opponent interaction button
     opponent_card_counts.forEach(op => {
@@ -82,60 +129,215 @@ export function handleGameStart (data, currentUserId, socket) {
 
           slot.appendChild(takeBtn);
         }
-    });
-
-
-    const totalWidth =  (handRow.children.length - 1) * 36;
-    handRow.style.width = `${totalWidth}px`;
-
-    handContainer.appendChild(handRow);
-    document.body.appendChild(handContainer);
-
-    // Update opponent card counts
-    opponent_card_counts.forEach(op => {
-      const slot = document.querySelector(`.player-slot[data-user-id="${op.user_id}"]`);
-      if (slot) {
         const cardCountEl = slot.querySelector(".card-count");
-        cardCountEl.classList.add('visible'); // Ensure it's visible
-
         if (cardCountEl) {
-          cardCountEl.textContent = op.count;
+          cardCountEl.textContent = op.count;   // <-- update opponent's starting card number
+          cardCountEl.classList.add("visible"); // make sure visible
         }
-      }
     });
 }
 
-//handle a function for card taking
-export function handle_card_taken(data, currentUserId) {
-    const { from_user_id, to_user_id, card_count, taken_card } = data;
+// New added functions
+export function handleTakeCard(decks, user, socket) {
+  // remove old hand
+  const oldHand = document.querySelector(".bottom-hand");
+  if (oldHand) oldHand.remove();
 
-    // Update opponent's card count
-    const slot = document.querySelector(`.player-slot[data-user-id="${from_user_id}"]`);
-    if (slot) {
-      const cardCountEl = slot.querySelector(".card-count");
-      if (cardCountEl) {
-        cardCountEl.textContent = card_count;
+  // create new hand container
+  const handContainer = document.createElement("div");
+  handContainer.className = "bottom-hand";
+
+  const handRow = document.createElement("div");
+  handRow.className = "card-row";
+
+  // render your cards
+  Object.keys(decks).forEach(user_id => {
+    const cards = decks[user_id];
+
+    if (user_id === user.user_id) {
+      // Update my hand
+      cards.forEach((card, index) => {
+        const cardEl = document.createElement("div");
+        cardEl.className = "card";
+        cardEl.style.setProperty("--i", index);
+
+        const img = document.createElement("img");
+        img.src = `/static/images/poker/${convertCardToFilename(card)}`;
+        img.alt = card;
+
+        cardEl.appendChild(img);
+        handRow.appendChild(cardEl);
+
+        cardEl.addEventListener("click", () => {
+          selectCard(cardEl, card);
+        });
+      });
+    } else {
+      // Update opponent's card count
+      const slot = document.querySelector(`.player-slot[data-user-id="${user_id}"]`);
+      if (slot) {
+        const cardCountEl = slot.querySelector(".card-count");
+        if (cardCountEl) {
+          cardCountEl.textContent = cards.length;
+        }
       }
     }
+  });
 
-    // If current user receives the card, add it to hand
-    if (to_user_id === user.user_id) {
-      const handRow = document.querySelector(".card-row");
+  const totalWidth = (handRow.children.length - 1) * 36;
+  handRow.style.width = `${totalWidth}px`;
 
+  handContainer.appendChild(handRow);
+  document.body.appendChild(handContainer);
+}
+
+
+export function handleSendCard(user, newdeck, card_send, currentUserId, socket) {
+  const handContainer = document.querySelector(".bottom-hand");
+  const handRow = document.querySelector(".bottom-hand .card-row");
+
+  if (user === currentUserId) {
+    handRow.innerHTML = "";
+
+    newdeck.forEach((card, index) => {
       const cardEl = document.createElement("div");
       cardEl.className = "card";
-      cardEl.style.setProperty("--i", handRow.children.length); // Update stacking index
+      cardEl.style.setProperty("--i", index);
 
       const img = document.createElement("img");
-      img.src = `/static/images/poker/${convertCardToFilename(taken_card)}`;
-      img.alt = taken_card;
+      img.src = `/static/images/poker/${convertCardToFilename(card)}`;
+      img.alt = card;
 
       cardEl.appendChild(img);
       handRow.appendChild(cardEl);
 
-      // Update hand row width
-      console.log((handRow.children.length - 1))
-      const totalWidth =  80 + (handRow.children.length - 1) * 31;
-      handRow.style.width = `${totalWidth}px`;
+      cardEl.addEventListener("click", () => {
+        selectCard(cardEl, card);
+      });
+    });
+
+    const totalWidth = (handRow.children.length - 1) * 36;
+    handRow.style.width = `${totalWidth}px`;
+
+    if (newdeck.length === 0) {
+      console.log("You win!");
+      socket.emit("game_win"); // Emit game_win to the server
+    }
+  } else {
+    // Opponent played 2 cards, reduce their card count
+    const slot = document.querySelector(`.player-slot[data-user-id="${user}"]`);
+    if (slot) {
+      const cardCountEl = slot.querySelector(".card-count");
+      if (cardCountEl) {
+        const previousCount = parseInt(cardCountEl.textContent) || 0;
+        cardCountEl.textContent = previousCount - card_send.length;
+      }
     }
   }
+
+  displayCenterCards(card_send);
+}
+
+
+export function displayCenterCards(cards) {
+  let centerDisplay = document.querySelector(".center-card-display");
+  if (centerDisplay) centerDisplay.remove();
+
+  centerDisplay = document.createElement("div");
+  centerDisplay.className = "center-card-display";
+  centerDisplay.style.position = "absolute";
+  centerDisplay.style.top = "50%";
+  centerDisplay.style.left = "50%";
+  centerDisplay.style.transform = "translate(-50%, -50%)";
+  centerDisplay.style.height = "150px";
+  centerDisplay.style.zIndex = "5000";
+  centerDisplay.style.width = "200px";
+
+  cards.forEach((card, index) => {
+    const cardEl = document.createElement("div");
+    cardEl.className = "card";
+    cardEl.style.setProperty("--i", index);
+
+    const img = document.createElement("img");
+    img.src = `/static/images/poker/${convertCardToFilename(card)}`;
+    img.alt = card;
+
+    cardEl.appendChild(img);
+    centerDisplay.appendChild(cardEl);
+  });
+
+  document.body.appendChild(centerDisplay);
+}
+
+export function handleGameOver(winner_id, username) {
+  // 1. Freeze actions
+  document.querySelectorAll(".take-button").forEach(btn => btn.disabled = true);
+  const sendBtn = document.getElementById("send-button");
+  if (sendBtn) sendBtn.disabled = true;
+
+  // 2. Create overlay popup
+  const overlay = document.createElement("div");
+  overlay.id = "game-over-overlay";
+  overlay.style.position = "fixed";
+  overlay.style.top = "0";
+  overlay.style.left = "0";
+  overlay.style.width = "100%";
+  overlay.style.height = "100%";
+  overlay.style.backgroundColor = "rgba(0, 0, 0, 0.8)";
+  overlay.style.display = "flex";
+  overlay.style.flexDirection = "column";
+  overlay.style.justifyContent = "center";
+  overlay.style.alignItems = "center";
+  overlay.style.zIndex = "9999";
+
+  const winnerText = document.createElement("div");
+  winnerText.textContent = `Winner: ${username}`;
+  winnerText.style.color = "white";
+  winnerText.style.fontSize = "32px";
+  winnerText.style.marginBottom = "20px";
+
+  const continueBtn = document.createElement("button");
+  continueBtn.textContent = "Continue";
+  continueBtn.style.margin = "10px";
+
+  const leaveBtn = document.createElement("button");
+  leaveBtn.textContent = "Leave";
+  leaveBtn.style.margin = "10px";
+
+  overlay.appendChild(winnerText);
+  overlay.appendChild(continueBtn);
+  overlay.appendChild(leaveBtn);
+  document.body.appendChild(overlay);
+
+  continueBtn.addEventListener("click", () => {
+    overlay.remove();
+    window.location.reload();
+  });
+
+  leaveBtn.addEventListener("click", () => {
+    window.location.href = "/homepage";
+  });
+}
+
+export function selectCard(cardElement, cardValue) {
+  const isSelected = cardElement.classList.contains("selected");
+
+  if (isSelected) {
+    // If already selected, unselect it
+    cardElement.classList.remove("selected");
+    selectedCards = selectedCards.filter(val => val !== cardValue);
+    selectedElements = selectedElements.filter(el => el !== cardElement);
+  } else {
+    if (selectedCards.length >= 2) {
+      // If 2 already selected, remove the oldest one first
+      const oldestElement = selectedElements.shift();
+      selectedCards.shift();
+      oldestElement.classList.remove("selected");
+    }
+
+    // Select the new card
+    cardElement.classList.add("selected");
+    selectedCards.push(cardValue);
+    selectedElements.push(cardElement);
+  }
+}

@@ -1,9 +1,11 @@
 import random
-
+from datetime import datetime
 from flask import request
 from flask_socketio import emit
-from Database import RoomCollection, UserInfo
+from Database import RoomCollection, UserInfo, MatchHistory
 
+
+room_decks = {}  # { room_id: { user_id: [cards...] } }
 
 def create_deck():
     suits = ['♠', '♥', '♦', '♣']
@@ -13,9 +15,8 @@ def create_deck():
     random.shuffle(deck)
     return deck
 
-
 def start_game_for_room(socketio, room_id, users_in_room):
-    deck = create_deck()  # 54 cards including jokers
+    deck = create_deck()
     room = RoomCollection.find_one({"room_id": room_id})
     if not room:
         return
@@ -24,92 +25,167 @@ def start_game_for_room(socketio, room_id, users_in_room):
     if len(players) != 3:
         return
 
-    hands = {pid: [] for pid in players}
-    for i, card in enumerate(deck):
-        pid = players[i % 3]
-        hands[pid].append(card)
+    # Shuffle and divide
+    room_decks[room_id] = {}
+    for i, player in enumerate(players):
+        room_decks[room_id][player] = deck[i * 18:(i + 1) * 18]
 
     RoomCollection.update_one(
         {"room_id": room_id},
-        {"$set": {
-            "game_active": True,
-            "hands": hands
-        }}
+        {"$set": {"game_active": True}}
     )
 
-
-    ### Send each player their hand + opponent card counts
+    # Send initial hands
     for sid, info in users_in_room.items():
         if info["room_id"] != room_id:
             continue
-
         user_id = info["user_id"]
         socketio.emit("game_start", {
-            "your_hand": hands[user_id],
+            "your_hand": room_decks[room_id][user_id],
             "opponent_card_counts": [
-                {"user_id": pid, "count": len(hands[pid])}
+                {"user_id": pid, "count": len(room_decks[room_id][pid])}
                 for pid in players if pid != user_id
             ]
         }, room=sid)
 
-def handle_take_card(socketio, users_in_room):
-    @socketio.on("take_card")
-    def _handle(data):
-        user_info = users_in_room.get(request.sid)
-        if not user_info:
-            emit("error", {"message": "User not found"})
-            return
 
-        user_id = user_info["user_id"]
-        room_id = user_info["room_id"]
-        target_user_id = data.get("target_user_id")
+def handle_take_card(socketio, users_in_room, sid, data):
 
-        room = RoomCollection.find_one({"room_id": room_id})
-        if not room or not room.get("hands"):
-            emit("error", {"message": "Game state not found"})
-            return
+    user_info = users_in_room.get(sid)
+    room_id = user_info["room_id"]
+    target_user_id = data.get("target_user_id")
 
-        hands = room["hands"]
-        if target_user_id not in hands or not hands[target_user_id]:
-            emit("error", {"message": "Target player has no cards"})
-            return
-
-        taken_card = random.choice(hands[target_user_id])
-        hands[target_user_id].remove(taken_card)
-        hands[user_id].append(taken_card)
-
-        RoomCollection.update_one({"room_id": room_id}, {"$set": {"hands": hands}})
-
-        emit("card_taken", {
-            "from_user_id": target_user_id,
-            "to_user_id": user_id,
-            "card_count": len(hands[target_user_id]),
-            "taken_card": taken_card
-        }, room=room_id)
-
-# ###If all 3 players are ready, start game
-def give_base_cards_to(room_id, user_id):
-    room = RoomCollection.find_one({"room_id": room_id})
-    if not room:
+    if len(room_decks[room_id][target_user_id]) <= 1:
+        socketio.emit("error_message", {"message": "Cannot take card: opponent has only 1 card left."}, room=sid)
         return
 
-    base_cards = room.get("base_cards", [])
-    hands = room.get("hands", {})
+    user_id = user_info["user_id"]
 
-    hands[user_id].extend(base_cards)
+    Roomdecks = room_decks[room_id]
+    TakeDeck = Roomdecks[target_user_id]
+    random_index = random.randint(0, len(TakeDeck) - 1)
+    card = TakeDeck[random_index]
+    MyDeck = Roomdecks[user_id]
 
-    RoomCollection.update_one(
-        {"room_id": room_id},
-        {"$set": {
-            "hands": hands,
-            "base_cards": [],
-            "call_status": {},
-            "call_confirm_index": None,
-            "call_confirm_order": []
-        }}
+    MyDeck.append(card)
+    TakeDeck.remove(card)
+    emit("taking_card", Roomdecks, room=room_id)
+
+
+
+def handle_send_cards(socketio, users_in_room, sid, data):
+    user_info = users_in_room.get(sid)
+    if not user_info:
+        return
+
+    room_id = user_info["room_id"]
+    user_id = user_info["user_id"]
+    cards_to_send = data.get("cards", [])
+
+    # Add security check: Must be exactly 2 cards
+    if len(cards_to_send) != 2:
+        socketio.emit("error_message", {"message": "You must select exactly two cards to send."}, room=sid)
+        return
+
+    # Check that the numbers (without suit) match
+    num1 = cards_to_send[0][:-1]  # "7♠" -> "7"
+    num2 = cards_to_send[1][:-1]
+    if num1 != num2:
+        socketio.emit("error_message", {"message": "Selected cards must have the same number."}, room=sid)
+        return
+
+    # Make sure player actually owns both cards
+    player_hand = room_decks.get(room_id, {}).get(user_id, [])
+    for card in cards_to_send:
+        if card not in player_hand:
+            socketio.emit("error_message", {"message": f"You don't have card {card}."}, room=sid)
+            return
+
+    # Remove the cards from the hand
+    for card in cards_to_send:
+        player_hand.remove(card)
+
+    socketio.emit("card_send", {
+        "user": user_id,
+        "newdeck": player_hand,
+        "card_send": cards_to_send
+    }, room=room_id)
+
+
+def handle_win_game(socketio, users_in_room, sid):
+    user_info = users_in_room.get(sid)
+    if not user_info:
+        return
+
+    room_id = user_info["room_id"]
+    user_id = user_info["user_id"]
+
+    if room_id not in room_decks or user_id not in room_decks[room_id]:
+        return
+
+    # Update database records
+    UserInfo.update_one(
+        {"user_id": user_id, "matches_won": {"$exists": False}},
+        {"$set": {"matches_won": 0}}
+    )
+    UserInfo.update_one(
+        {"user_id": user_id, "matches_played": {"$exists": False}},
+        {"$set": {"matches_played": 0}}
     )
 
-    emit("base_cards_assigned", {
-        "user_id": user_id,
-        "cards": base_cards
-    }, room=room_id)
+    #Increase winner stat
+    UserInfo.update_one(
+        {"user_id": user_id},
+        {"$inc": {"matches_won": 1, "matches_played": 1}}
+    )
+
+    #Update other players stat
+    losers = []
+    for pid in room_decks[room_id]:
+        if pid != user_id:
+            UserInfo.update_one(
+                {"user_id": pid, "matches_played": {"$exists": False}},
+                {"$set": {"matches_played": 0}}
+            )
+            UserInfo.update_one(
+                {"user_id": pid},
+                {"$inc": {"matches_played": 1}}
+            )
+            loser_info = UserInfo.find_one({"user_id": pid}, {"_id": 0, "user_id": 1, "username": 1, "ImgUrl": 1})
+            losers.append(loser_info)
+
+    user_db = UserInfo.find_one({"user_id": user_id})
+    username = user_db.get("username", "_UNKNOWN_")
+    winner_info = {
+        "user_id": user_db.get("user_id"),
+        "username": user_db.get("username", "Unknown"),
+        "ImgUrl": user_db.get("ImgUrl", "/static/images/defaultIcon.png")
+    }
+    MatchHistory.insert_one({
+        "winner": winner_info,
+        "losers": losers,
+        "timestamp": datetime.utcnow()
+    })
+
+    socketio.emit("game_over", {"winner_id": user_id, "username": username}, room=room_id)
+
+    # Cleanup memory after game ends
+    if room_id in room_decks:
+        del room_decks[room_id]
+
+    if room_id in room_decks:
+        del room_decks[room_id]
+
+    #  Now destroy the room itself from database
+    result = RoomCollection.delete_one({"room_id": room_id})
+    if result.deleted_count > 0:
+        print(f"[Game End] Room {room_id} deleted.")
+
+    # broadcast to homepage if needed
+    socketio.emit("room_deleted", {"room_id": room_id}, broadcast=True)
+    socketio.emit("all_rooms", list(RoomCollection.find({}, {"_id": 0})), broadcast=True)
+
+def get_player_hand(room_id, user_id):
+    if room_id in room_decks and user_id in room_decks[room_id]:
+        return room_decks[room_id][user_id]
+    return []

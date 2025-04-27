@@ -357,6 +357,38 @@ body {
   75%, 100% { transform: scale(1); }
 }
 
+/* New added stuff*/
+.card.selected {
+   transform: translateY(-10px); /* Slightly lift the card */
+   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3); /* Add a shadow */
+   border: 2px solid gold; /* Optional: highlight border */
+ }
+
+.send-button-container {
+  position: fixed; /* <-- not absolute */
+  bottom: 190px; /* <-- move it HIGH above cards */
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 1500; /* Higher than cards */
+  text-align: center;
+}
+
+#send-button {
+  padding: 10px 20px;
+  background-color: #ffcc00;
+  border: none;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: bold;
+  color: #333;
+  cursor: pointer;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.2);
+}
+
+#send-button:hover {
+  background-color: #ffdb4d;
+}
+
 
 @media (max-width: 600px) {
   .profile {
