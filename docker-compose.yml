@@ -7,7 +7,7 @@ services:
       - "80:80"
     volumes:
       - ./nginx.conf:/etc/nginx/nginx.conf
-      - ./certs:/etc/letsencrypt
+      - ./certs:/etc/letsencrypt:ro
     depends_on:
       - backend
     networks:
