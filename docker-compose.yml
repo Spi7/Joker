@@ -6,7 +6,7 @@ services:
     environment:
       - FLASK_ENV=${FLASK_ENV}
       - SECRET_KEY=${SECRET_KEY}
-      - DOCKER_DB=${DOCKER_DB}
+      - DOCKER_DB=true
     volumes:
 #      - .:/app #hot reload for local/dev stage
       - ./logs:/app/logs  # <-- ONLY log volume mapping
