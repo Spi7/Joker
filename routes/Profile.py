@@ -12,7 +12,7 @@ def GetUserInfo():
     auth_token = request.cookies.get("auth_token")
     hash_token = hashlib.sha256(auth_token.encode()).hexdigest()
     userinfo = UserInfo.find_one({"auth_token": hash_token}, {"_id": 0,"password":0})  # Exclude _id from response
-    print(userinfo)
+    #print(userinfo)
     return jsonify(userinfo)
 
 @blueprint.route("/ChangeIcon",methods = ["POST"])
@@ -53,7 +53,7 @@ def ChangeIcon():
 
     public_url = f"/static/images/Icon/{filename}"
     UserInfo.update_one({"user_id": user_id}, {"$set": {"ImgUrl": public_url}})
-    print(f"Saved icon to {path}")
+    #print(f"Saved icon to {path}")
 
     return jsonify({"ImgUrl": public_url})
 

@@ -16,7 +16,7 @@ disconnect_timers = {}  # {sid: Timer}
 # map {sid: {user_id, room_id}, ...}
 
 def register_room_handlers(socketio):
-    print("register_room_handlers called")
+    #print("register_room_handlers called")
 
     @socketio.on("connect")
     def handle_connect():
@@ -24,7 +24,7 @@ def register_room_handlers(socketio):
 
     @socketio.on("disconnect")
     def handle_disconnect():
-        print(f"Client disconnected: {request.sid}")
+        #print(f"Client disconnected: {request.sid}")
         user_info = users_in_room.get(request.sid)
 
         if not user_info:
@@ -50,7 +50,7 @@ def register_room_handlers(socketio):
 
             # Always keep player in room if game is active
             if room.get("game_active", False):
-                print(f"[Timeout Protect] {user_id} remains in active game {room_id}")
+                #print(f"[Timeout Protect] {user_id} remains in active game {room_id}")
 
                 # Ensure user stays in users_in_room for potential reconnect
                 if request.sid not in users_in_room:
@@ -127,7 +127,7 @@ def register_room_handlers(socketio):
     def handle_intentional_leave(data):
         user_id = data.get("user_id")
         sid = request.sid
-        print(f"[Intentional Leave] SID: {sid}, user_id: {user_id}")
+        #print(f"[Intentional Leave] SID: {sid}, user_id: {user_id}")
 
         user_info = users_in_room.pop(sid, None)
         if not user_info:
@@ -144,7 +144,7 @@ def register_room_handlers(socketio):
             return
 
         if room.get("game_active", False):
-            print(f"[Intentional Leave] {user_id} left during active game {room_id}. Keeping in DB for reconnect.")
+            #print(f"[Intentional Leave] {user_id} left during active game {room_id}. Keeping in DB for reconnect.")
             return
 
 
@@ -191,12 +191,12 @@ def register_room_handlers(socketio):
 
     @socketio.on("join_homepage")  # New handler
     def handle_join_homepage():
-        print(f"Client {request.sid} joined homepage room")
+        #print(f"Client {request.sid} joined homepage room")
         join_room("homepage")
 
     @socketio.on("leave_homepage")
     def handle_leave_homepage():
-        print(f"Client {request.sid} left homepage room")
+        #print(f"Client {request.sid} left homepage room")
         leave_room("homepage")
 
     @socketio.on("get_all_rooms")
@@ -210,7 +210,7 @@ def register_room_handlers(socketio):
     @socketio.on("create_room")
     def create_room(data):
         try:
-            print(f"create_room event received with data: {data}")
+            #print(f"create_room event received with data: {data}")
             user_id = data.get("user_id")
             username = data.get("username")
             room_name = data.get("room_name", "Untitled Room")
@@ -242,7 +242,7 @@ def register_room_handlers(socketio):
             }, broadcast=True, include_self=False)
 
         except Exception as e:
-            print(f"Error in create_room: {str(e)}")
+            #print(f"Error in create_room: {str(e)}")
             emit("error", {"message": "Failed to create room"}, room=request.sid)
 
     @socketio.on("join_room")
@@ -391,7 +391,7 @@ def register_room_handlers(socketio):
             username = user.get("username", f"User {pid[:4]}") if user else pid
             ready = ready_status.get(room_id, {}).get(pid, False)
             status_list.append({"user_id": pid, "username": username, "isReady": ready})
-            print("ready")
+            #print("ready")
 
         if len(players) == 3 and all(ready_status[room_id].get(pid, False) for pid in players):
             room_info = RoomCollection.find_one({"room_id": room_id})
@@ -451,7 +451,7 @@ def register_room_handlers(socketio):
         if ghost_room.get("game_active", False):
             return
 
-        print(f"[Cleanup] Found ghost user in room {ghost_room['room_id']}")
+        #print(f"[Cleanup] Found ghost user in room {ghost_room['room_id']}")
 
         # remove the user from the room, if it's consider as a ghost user
         RoomCollection.update_one(
