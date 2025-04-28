@@ -98,7 +98,7 @@ const newSendButton = document.getElementById("send-button");
         cardEl.style.setProperty("--i", index); // Set index for CSS stacking
 
         const img = document.createElement("img");
-        img.src = `/static/images/poker/${convertCardToFilename(card)}`;
+        img.src = `/static/images/Poker/${convertCardToFilename(card)}`;
         img.alt = card;
 
         cardEl.appendChild(img);
@@ -152,6 +152,10 @@ export function handleTakeCard(decks, user, socket) {
 
   // render your cards
   Object.keys(decks).forEach(user_id => {
+    const prevSelectedCards = [...selectedCards];
+    selectedCards = [];
+    selectedElements = [];
+
     const cards = decks[user_id];
 
     if (user_id === user.user_id) {
@@ -162,11 +166,16 @@ export function handleTakeCard(decks, user, socket) {
         cardEl.style.setProperty("--i", index);
 
         const img = document.createElement("img");
-        img.src = `/static/images/poker/${convertCardToFilename(card)}`;
+        img.src = `/static/images/Poker/${convertCardToFilename(card)}`;
         img.alt = card;
 
         cardEl.appendChild(img);
         handRow.appendChild(cardEl);
+        if (prevSelectedCards.includes(card)) {
+          cardEl.classList.add("selected");
+          selectedCards.push(card);
+          selectedElements.push(cardEl);  // Re-push element for tracking
+        }
 
         cardEl.addEventListener("click", () => {
           selectCard(cardEl, card);
@@ -205,7 +214,7 @@ export function handleSendCard(user, newdeck, card_send, currentUserId, socket) 
       cardEl.style.setProperty("--i", index);
 
       const img = document.createElement("img");
-      img.src = `/static/images/poker/${convertCardToFilename(card)}`;
+      img.src = `/static/images/Poker/${convertCardToFilename(card)}`;
       img.alt = card;
 
       cardEl.appendChild(img);
@@ -259,7 +268,7 @@ export function displayCenterCards(cards) {
     cardEl.style.setProperty("--i", index);
 
     const img = document.createElement("img");
-    img.src = `/static/images/poker/${convertCardToFilename(card)}`;
+    img.src = `/static/images/Poker/${convertCardToFilename(card)}`;
     img.alt = card;
 
     cardEl.appendChild(img);
