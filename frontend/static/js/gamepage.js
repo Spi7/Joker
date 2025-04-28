@@ -51,24 +51,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   // Handle new player joins
   socket.on("player_joined", (data) => {
-    console.log(`${data.username} joined!`, data.user_map);
+    //console.log(`${data.username} joined!`, data.user_map);
     updatePlayerList(data.players, user.user_id, data.user_map);
   });
 
   // Handle player leaves (disconnect)
   socket.on("player_left", (data) => {
-    console.log(`Player left room ${data.room_id}`, data.user_map);
+    //console.log(`Player left room ${data.room_id}`, data.user_map);
     updatePlayerList(data.players, user.user_id, data.user_map);
     socket.emit("get_ready_status");
   });
 
   // On initial room join (you yourself) --> deal with refreshes too
   socket.on("joined_room", (data) => {
-    console.log("Joined room", data);
+    //console.log("Joined room", data);
     updatePlayerList(data.players, user.user_id, data.user_map);
 
     if (data.game_active) {
-      console.log("Game already active, waiting for game_start...");
+      //console.log("Game already active, waiting for game_start...");
       gameStarted = true;
       // The server will emit "game_start" to us, we just wait for it.
     } else {
@@ -81,13 +81,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
   socket.on("update_ready_status", (statusList) => {
-    console.log("Readiness status:", statusList);
+    //console.log("Readiness status:", statusList);
     updateReadyStatus(statusList);
   });
 
   // ========================== NEW added =====================================
   socket.on("taking_card", (decks) => {
-    console.log("Received taking_card:", decks);
+    //console.log("Received taking_card:", decks);
     handleTakeCard(decks, user, socket);
   });
 

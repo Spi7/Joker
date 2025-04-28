@@ -1,29 +1,64 @@
-# Joker
+# 🃏 Joker - Real-Time Card Game
 
-Install Docker and Docker Compose 
+## 🚀 Setup Instructions
 
-To start:
+1. **Install Docker** and **Docker Compose** on your machine.
 
-run "docker-compose up --build" at your terminal
-Use python -m pip install -r requirements.txt to get start
-Then visit "http://localhost:8080/ping" in your browser
-you are able to see  {"message": "pong from 312Joker backend!"}
+2. **Clone this repository** and navigate into the project folder.
 
+3. Before running the project, **create** a `.env` file in the root directory with the following variables:
 
-🃏 Game Rules
-- Each game includes 3 players.
+   ```dotenv
+   FLASK_ENV=development  # for local testing use development
+   SECRET_KEY=your_secret_key_here
+   DOCKER_DB=true
+   ```
 
-- At the start, every player receives 18 cards.
+--> You can use the provided `.env.example` as a template.
 
-- A visible 3-second countdown will begin before the game starts.
+4. **Build and start containers:**
+   ```bash
+   docker-compose up --build
+   ```
+3.5 **Build docker in detached mode** 
+   ```bash
+   docker-compose up --build -d
+   ```
 
-- You will see a “Grab” button next to each of your two opponents.
-Clicking this lets you steal one random card from that player.
+4. **Install Python dependencies (Building docker should also help you install all necessary packs from requirement.txt):**
+   ```bash
+   python -m pip install -r requirements.txt
+   ```
+  
 
-- You can only grab from other players, not yourself.
+5. **Verify the backend is running:**
+   - Visit [http://localhost:8080/ping](http://localhost:8080/ping) in your browser.
+   - You should see:
+     ```json
+     { "message": "pong from 312Joker backend!" }
+     ```
 
-- You may only play pairs — two cards of the same value, like two 5s or two Queens.
+---
 
-- This is a real-time free-for-all battle, not a turn-based game. You can play your cards at any moment!
+## 🎮 Game Rules
 
-- The first player to play all their cards wins the game.
+- Each game requires **3 players**.
+- At the start, **each player receives 18 cards**.
+- A **visible 3-second countdown** will begin before the game starts.
+- You will see a **"Take" button** next to each of your two opponents:
+  - Clicking it **steals one random card** from that opponent.
+  - You **cannot** grab cards from yourself.
+- You may **only play pairs** by selecting two same cards and press **Send Button**:
+  - Two cards of the same value, such as two 5s or two Queens.
+- The game is a **real-time free-for-all**:
+  - **Not** turn-based — you can play and steal cards **at any moment**!
+- The **first player to play all their cards wins** the game.
+- When a player has last card, their card **CANNOT** be steal
+---
+
+## 🛠️ Notes
+
+- The project uses **Flask** (backend) + **Flask-SocketIO** for real-time WebSocket communication.
+- Static files (CSS, JS, images) are served from the `frontend/static/` directory.
+- MongoDB is used to manage user, room, and match history data.
+

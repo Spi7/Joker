@@ -30,7 +30,7 @@ async function checkAndReconnectGame() {
     }
 
     const data = await res.json();
-    console.log("[Reconnect] Game status:", data);
+    //console.log("[Reconnect] Game status:", data);
 
     if (data.inGame) {
       const reconnectModal = document.getElementById("reconnect-modal");
@@ -81,7 +81,7 @@ window.addEventListener("pageshow", (event) => {
 });
 
 document.addEventListener("DOMContentLoaded", async () => {
-  console.log("DOMContentLoaded triggered");
+  //console.log("DOMContentLoaded triggered");
 
   let userInfo = await fetchCurrentUserOrRedirect();
   if (!userInfo) return;
@@ -92,7 +92,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   // Delay to ensure DOM fully ready and painted
   requestAnimationFrame(() => {
     setTimeout(async () => {
-      console.log("2s after DOMContentLoaded, running reconnect logic");
+      //console.log("2s after DOMContentLoaded, running reconnect logic");
 
       if (justNavigatedFromGame) {
         socket.emit("intentional_leave_room", {

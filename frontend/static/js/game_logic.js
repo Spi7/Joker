@@ -38,7 +38,7 @@ export function convertCardToFilename(card) {
 export function handleGameStart (data, currentUserId, socket) {
     const { your_hand, opponent_card_counts } = data;
 
-    console.log("Received game_start:", data);
+    // console.log("Received game_start:", data);
 
     // Remove the ready button when game starts
     const readyBtnContainer = document.querySelector(".ready-button-container");
@@ -67,12 +67,10 @@ const newSendButton = document.getElementById("send-button");
           const num2 = selectedCards[1].slice(0, -1);
 
           if (num1 !== num2) {
-              console.log("Selected cards do not match! Cannot send.");
               return; // ✋ do nothing if not matching
           }
 
           // Now safe to send
-          console.log("Sending cards:", selectedCards);
           socket.emit("send_cards", {cards: selectedCards});
 
           // After sending, reset selection
@@ -105,7 +103,7 @@ const newSendButton = document.getElementById("send-button");
         handRow.appendChild(cardEl);
 
         cardEl.addEventListener("click", () => {
-          selectCard(cardEl, card); // 👈 Add this line!
+          selectCard(cardEl, card);
         });
     });
 
@@ -229,7 +227,6 @@ export function handleSendCard(user, newdeck, card_send, currentUserId, socket) 
     handRow.style.width = `${totalWidth}px`;
 
     if (newdeck.length === 0) {
-      console.log("You win!");
       socket.emit("game_win"); // Emit game_win to the server
     }
   } else {
