@@ -1,0 +1,152 @@
+.game-navbar .navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+    /* Set explicit size to prevent inheritance */
+    font-size: 16px;
+}
+
+.game-navbar .card-symbol {
+    font-size: 1.2rem !important; /* Force this size with !important */
+    color: #f9a825;
+    letter-spacing: 3px;
+    text-shadow: 0 0 5px rgba(249, 168, 37, 0.5);
+}
+
+.game-navbar .navbar-title {
+    font-size: 1.5rem !important; /* Force this size with !important */
+    background: linear-gradient(to right, #f9a825, #f57f17);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.game-navbar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    padding: 0 10px;
+    height: 60px;
+    background: linear-gradient(to right, rgba(0, 0, 0, 0.8), rgba(50, 10, 10, 0.8));
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+    z-index: 1000;
+    backdrop-filter: blur(5px);
+    color: white;
+    overflow: hidden;
+    font-family: 'Segoe UI', Arial, sans-serif !important;
+}
+
+.navbar-logo {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-weight: bold;
+}
+
+.card-symbol {
+    font-size: 1.2rem;
+    color: #f9a825;
+    letter-spacing: 3px;
+    text-shadow: 0 0 5px rgba(249, 168, 37, 0.5);
+}
+
+.navbar-title {
+    font-size: 1.5rem;
+    background: linear-gradient(to right, #f9a825, #f57f17);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
+.navbar-links {
+    display: flex;
+    gap: 15px;
+}
+
+.nav-link {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 20px;
+    text-decoration: none;
+    color: white;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+}
+
+.nav-link:hover, .nav-link.active {
+    background-color: rgba(255, 255, 255, 0.15);
+    transform: translateY(-2px);
+}
+
+.nav-link:active {
+    transform: translateY(0);
+}
+
+.nav-link::after {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: 0;
+    height: 2px;
+    background: linear-gradient(to right, #f9a825, #f57f17);
+    transition: all 0.3s ease;
+    transform: translateX(-50%);
+}
+
+.nav-link:hover::after, .nav-link.active::after {
+    width: 80%;
+}
+
+.nav-icon {
+    font-size: 1.2rem;
+}
+
+/* Responsive adjustments */
+@media (max-width: 600px) {
+    .nav-text {
+        display: none;
+    }
+
+    .navbar-links {
+        gap: 5px;
+    }
+
+    .nav-link {
+        padding: 8px;
+    }
+
+    .navbar-title {
+        font-size: 1.2rem;
+    }
+}
+
+/* Adjust body padding to account for fixed navbar */
+body {
+    padding-top: 60px;
+}
+
+/* Page-specific active states */
+body.homepage-page #nav-home,
+body.leaderboard-page #nav-leaderboard,
+body.profile-page #nav-profile {
+    background-color: rgba(255, 255, 255, 0.2);
+}
+
+body.homepage-page #nav-home::after,
+body.leaderboard-page #nav-leaderboard::after,
+body.profile-page #nav-profile::after {
+    width: 80%;
+}

@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Leaderboard - 312Joker</title>
+    <!-- Include CSS files -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/leaderboard.css') }}">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/navbar.css') }}">
+    <link rel="icon"
+          href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🃏</text></svg>">
+
+</head>
+<body>
+<nav class="game-navbar">
+    <div class="navbar-logo">
+        <span class="card-symbol">♠ ♥ ♣ ♦</span>
+        <span class="navbar-title">Landlord</span>
+    </div>
+    <div class="navbar-links">
+        <a href="/homepage" class="nav-link" id="nav-home">
+            <span class="nav-icon">🏠</span>
+            <span class="nav-text">Home</span>
+        </a>
+        <a href="/leaderboard" class="nav-link" id="nav-leaderboard">
+            <span class="nav-icon">🏆</span>
+            <span class="nav-text">Leaderboard</span>
+        </a>
+        <a href="/profile" class="nav-link" id="nav-profile">
+            <span class="nav-icon">👤</span>
+            <span class="nav-text">Profile</span>
+        </a>
+    </div>
+</nav>
+<main>
+    <div class="leaderboard-container">
+        <div class="leaderboard-section">
+            <div class="section-header">
+                <h2 class="leaderboard-title">Top Players by Wins</h2>
+                <button id="refresh-leaderboard" class="refresh-button">Refresh</button>
+            </div>
+            <div id="win-leaderboard">
+                <div class="loading">Loading leaderboard data...</div>
+            </div>
+        </div>
+
+        <div class="leaderboard-section">
+            <h2 class="leaderboard-title">Top Players by Win Streaks</h2>
+            <div id="streak-leaderboard">
+                <div class="loading">Loading leaderboard data...</div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- Include JavaScript files -->
+<script src="/static/js/leaderboard.js"></script>
+</body>
+</html>

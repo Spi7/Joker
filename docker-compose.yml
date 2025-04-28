@@ -1,0 +1,32 @@
+services:
+  backend:
+    build: .
+    ports:
+      - "8080:8080"
+    environment:
+      - FLASK_ENV=${FLASK_ENV}
+      - SECRET_KEY=${SECRET_KEY}
+      - DOCKER_DB=true
+    volumes:
+#      - .:/app #hot reload for local/dev stage
+      - ./logs:/app/logs  # <-- ONLY log volume mapping
+    depends_on:
+      - mongo
+    networks:
+      - joker_net
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:4.2.5
+    volumes:
+      - mongo-data:/data/db
+    networks:
+      - joker_net
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
+
+networks:
+  joker_net:
+    driver: bridge

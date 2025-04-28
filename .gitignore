@@ -1,0 +1,23 @@
+# created by virtualenv automatically
+# Ignore Python cache and compiled files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Ignore IDE and project files
+.idea/
+*.iml
+
+# Virtual environments
+.venv/
+venv/
+env/
+.env
+
+# Logs
+logs/
+!app.log
+
+#Images upload by user
+/frontend/static/images/Icon/

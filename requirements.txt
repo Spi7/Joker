@@ -1,0 +1,6 @@
+flask==2.2.5
+flask-socketio
+eventlet
+pymongo
+uuid
+gunicorn
