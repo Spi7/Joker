@@ -57,7 +57,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (userInfo.ImgUrl && userInfo.ImgUrl.startsWith("/static/images/Icon/")) {
       avatarElement.src = userInfo.ImgUrl;
     } else {
-      avatarElement.src = "/static/images/defaultIcon.png";
+      avatarElement.src = "/static/images/Icon/defaultIcon.png";
     }
 
     const matchResponse = await fetch(`/api/profile/GetMatch`, { method: "GET" });
