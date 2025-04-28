@@ -100,7 +100,7 @@ def register_room_handlers(socketio):
                 user_map = {
                     pid: {
                         "username": user.get("username", f"User {pid[:4]}"),
-                        "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
+                        "avatar": user.get("ImgUrl", "/static/images/Icon/defaultIcon.png")
                     }
                     for pid in remaining_players
                     if (user := UserInfo.find_one({"user_id": pid}))
@@ -164,7 +164,7 @@ def register_room_handlers(socketio):
             user_map = {
                 pid: {
                     "username": user.get("username", f"User {pid[:4]}"),
-                    "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
+                    "avatar": user.get("ImgUrl", "/static/images/Icon/defaultIcon.png")
                 }
                 for pid in remaining_players
                 if (user := UserInfo.find_one({"user_id": pid}))
@@ -274,7 +274,7 @@ def register_room_handlers(socketio):
                 user_map = {
                     pid: {
                         "username": user.get("username", f"User {pid[:4]}"),
-                        "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
+                        "avatar": user.get("ImgUrl", "/static/images/Icon/defaultIcon.png")
                     }
                     for pid in players
                     if (user := UserInfo.find_one({"user_id": pid}))
@@ -326,7 +326,7 @@ def register_room_handlers(socketio):
             user_map = {
                 pid: {
                     "username": user.get("username", f"User {pid[:4]}"),
-                    "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
+                    "avatar": user.get("ImgUrl", "/static/images/Icon/defaultIcon.png")
                 }
                 for pid in updated_players
                 if (user := UserInfo.find_one({"user_id": pid}))
@@ -467,7 +467,7 @@ def register_room_handlers(socketio):
         user_map = {
             pid: {
                 "username": user.get("username", f"User {pid[:4]}"),
-                "avatar": user.get("ImgUrl", "/static/images/defaultIcon.png")
+                "avatar": user.get("ImgUrl", "/static/images/Icon/defaultIcon.png")
             }
             for pid in remaining
             if (user := UserInfo.find_one({"user_id": pid}))

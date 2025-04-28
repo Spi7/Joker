@@ -156,7 +156,7 @@ def handle_win_game(socketio, users_in_room, ready_status, sid):
     winner_info = {
         "user_id": user_db.get("user_id"),
         "username": user_db.get("username", "Unknown"),
-        "ImgUrl": user_db.get("ImgUrl", "/static/images/defaultIcon.png")
+        "ImgUrl": user_db.get("ImgUrl", "/static/images/Icon/defaultIcon.png")
     }
     MatchHistory.insert_one({
         "winner": winner_info,
