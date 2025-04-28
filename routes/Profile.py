@@ -51,16 +51,35 @@ def ChangeIcon():
     path = os.path.join(prefix_path, filename)
     image.save(path)  # ✅ save file directly
 
-    public_url = f"/static/images/{filename}"
+    public_url = f"/static/images/Icon/{filename}"
     UserInfo.update_one({"user_id": user_id}, {"$set": {"ImgUrl": public_url}})
     print(f"Saved icon to {path}")
 
     return jsonify({"ImgUrl": public_url})
 
-@blueprint.route("/GetMatch",methods = ["GET"])
+@blueprint.route("/GetMatch", methods=["GET"])
 def GetMatch():
     auth_token = request.cookies.get("auth_token")
+    if not auth_token:
+        return jsonify({"error": "Not authenticated"}), 401
+
     hash_token = hashlib.sha256(auth_token.encode()).hexdigest()
-    userid = UserInfo.find_one({"auth_token": hash_token}, {"_id": 0})["user_id"]
-    MatchH_History = list(MatchHistory.find({"user_id": userid}, {"_id": 0}))
-    return jsonify({"Match": MatchH_History})
+    user = UserInfo.find_one({"auth_token": hash_token}, {"_id": 0, "user_id": 1})
+
+    if not user:
+        return jsonify({"error": "User not found"}), 404
+
+    userid = user["user_id"]
+
+    # Updated query for nested user_id fields
+    match_history = list(MatchHistory.find(
+        {
+            "$or": [
+                {"winner.user_id": userid},
+                {"losers.user_id": userid}  # Match any user_id inside the losers array
+            ]
+        },
+        {"_id": 0}
+    ))
+
+    return jsonify({"Match": match_history})

@@ -10,17 +10,14 @@ async function fetchCurrentUserOrRedirect() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  const backButton = document.getElementById("go-home");
-  backButton.addEventListener("click", () => {
-    window.location.href = "/homepage";
-  });
-
-  let userInfo = await fetchCurrentUserOrRedirect() //check auth
+  let userInfo = await fetchCurrentUserOrRedirect(); // check auth
   if (!userInfo) {
     return;
   }
+
   const editBtn = document.getElementById("edit-avatar-btn");
   const uploadInput = document.getElementById("avatar-upload");
+  const avatarElement = document.querySelector(".profile-avatar");
 
   editBtn.addEventListener("click", () => {
     uploadInput.click();
@@ -41,7 +38,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const data = await res.json();
       if (data.ImgUrl) {
-        document.querySelector(".profile-avatar").src = data.ImgUrl;
+        avatarElement.src = data.ImgUrl;
       } else {
         console.error("Invalid response from server:", data);
       }
@@ -51,29 +48,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   try {
-    // Fetch user info
-    const userInfoRes = await fetch("/api/profile/GetUserInfo",{method: "GET"});
+    const userInfoRes = await fetch("/api/profile/GetUserInfo", { method: "GET" });
     const userInfo = await userInfoRes.json();
     document.getElementById("username").textContent = userInfo.username;
-    document.getElementById("matches-played").textContent = userInfo.MatchPlayed ?? 0;
-    document.getElementById("matches-won").textContent = userInfo.MatchWin ?? 0;
-    const avatarImg = document.querySelector(".profile-avatar");
-    if (userInfo.ImgUrl) {
-      avatarImg.src = userInfo.ImgUrl;
+    document.getElementById("matches-played").textContent = userInfo.matches_played ?? 0;
+    document.getElementById("matches-won").textContent = userInfo.matches_won ?? 0;
+
+    if (userInfo.ImgUrl && userInfo.ImgUrl.startsWith("/static/images/Icon/")) {
+      avatarElement.src = userInfo.ImgUrl;
     } else {
-      avatarImg.src = "/static/images/defaultIcon.png"; // ← or whatever your default path is
+      avatarElement.src = "/static/images/defaultIcon.png";
     }
 
-    // Fetch match history
-    const matchResponse = await fetch(`/api/profile/GetMatch`,{method:"GET"});
+    const matchResponse = await fetch(`/api/profile/GetMatch`, { method: "GET" });
     const matchJson = await matchResponse.json();
     const matchData = matchJson.Match;
 
-    // Compute highest streak
     let streak = 0;
     let maxStreak = 0;
     for (const match of matchData) {
-      if (match.MatchResult === "Win") {
+      const isWinner = match.winner.user_id === userInfo.user_id;
+      if (isWinner) {
         streak++;
         maxStreak = Math.max(maxStreak, streak);
       } else {
@@ -82,31 +77,36 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
     document.getElementById("highest-streak").textContent = maxStreak;
 
-    // Render match history
     const matchList = document.getElementById("match-list");
     matchList.innerHTML = "";
 
     for (const match of matchData) {
-      const card = document.createElement("div");
-      card.className = "post-card horizontal-layout";
+      const isWinner = match.winner.user_id === userInfo.user_id;
+      const badgeSrc = isWinner ? "/static/images/Win.png" : "/static/images/Lose.png";
 
-      const badgeSrc = match.MatchResult === "Win" ? "Win.png" : "Lose.png";
+      const opponents = match.losers.filter(op => op.user_id !== userInfo.user_id);
+      if (!isWinner) {
+        opponents.push(match.winner);
+      }
 
-      const opponentsHTML = match.opponents.map(op => `
+      const opponentsHTML = opponents.map(op => `
         <div class="opponent">
-          <img src="${op.Img}" class="opponent-avatar" alt="${op.username}" />
+          <img src="${op.ImgUrl}" class="opponent-avatar" alt="${op.username}" />
           <div class="opponent-name">${op.username}</div>
         </div>
       `).join("");
 
+      const card = document.createElement("div");
+      card.className = "post-card horizontal-layout";
+
       card.innerHTML = `
         <div class="match-left">
-          <img class="winloss-badge" src="${badgeSrc}" alt="${match.MatchResult}" />
+          <img class="winloss-badge" src="${badgeSrc}" alt="${isWinner ? 'Win' : 'Lose'}" />
         </div>
         <div class="match-center">
           ${opponentsHTML}
         </div>
-        <div class="match-right">${match.StartedTime}</div>
+        <div class="match-right">${new Date(match.timestamp).toLocaleString()}</div>
       `;
 
       matchList.appendChild(card);
