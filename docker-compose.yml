@@ -1,32 +1,32 @@
-#version: "3.9" remove this should still work
-
 services:
   backend:
     build: .
     ports:
       - "8080:8080"
-    volumes:
-      - .:/app         
-      - ./logs:/app/logs
     environment:
-      - FLASK_ENV=development
+      - FLASK_ENV=${FLASK_ENV}
+      - SECRET_KEY=${SECRET_KEY}
+      - DOCKER_DB=true
+    volumes:
+#      - .:/app #hot reload for local/dev stage
+      - ./logs:/app/logs  # <-- ONLY log volume mapping
     depends_on:
       - mongo
+    networks:
+      - joker_net
+    restart: unless-stopped
 
-  #build: ./nginx2 into mongo
   mongo:
     image: mongo:4.2.5
-    ports:
-      - "27017:27017"   #this part must be removed before deploying
     volumes:
       - mongo-data:/data/db
-  #check this app part and see if there's any modification need to be made
-#  app:
-#    build: .
-#    environment:
-#      WAIT_HOSTS: mongo:27017
-#    ports:
-#      - '8080:8080'
+    networks:
+      - joker_net
+    restart: unless-stopped
 
 volumes:
   mongo-data:
+
+networks:
+  joker_net:
+    driver: bridge

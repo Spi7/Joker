@@ -51,7 +51,11 @@ app.register_blueprint(blueprint)
 app.register_blueprint(game_blueprint)
 app.register_blueprint(leaderboard_bp)
 
-socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
+if os.environ.get("FLASK_ENV") == "production":
+    socketio = SocketIO(app, cors_allowed_origins=["https://joker.cse312.dev"])
+else:
+    socketio = SocketIO(app, cors_allowed_origins="*")
+
 #later for production
 # socketio = SocketIO(app, cors_allowed_origins=["https://yourdomain.com"])
 
@@ -94,6 +98,7 @@ def leaderboard():
     return render_template("leaderboard.html")
 
 
+
 if __name__ == "__main__":
-    # app.run(host="0.0.0.0", port=8080)
-    socketio.run(app, host="0.0.0.0", port=8080) #change to socket
+    if os.environ.get("FLASK_ENV") == "development":
+        socketio.run(app, host="0.0.0.0", port=8080, allow_unsafe_werkzeug=True)
