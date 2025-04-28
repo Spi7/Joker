@@ -87,7 +87,7 @@ def login():
             response.set_cookie(
                 "auth_token", auth_token,
                 httponly=True,
-                secure=False,  # False for localhost, True in production!!!!!!!!!!!
+                secure=os.environ.get("FLASK_ENV") == "production",  # False for localhost, True in production!!!!!!!!!!!
                 samesite='Lax',
                 max_age=60 * 60 * 24  # 1 day
             )

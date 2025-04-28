@@ -42,7 +42,11 @@ app.register_blueprint(auth_bp)
 app.register_blueprint(user_bp)
 app.register_blueprint(blueprint)
 
-socketio = SocketIO(app, cors_allowed_origins="*") #INSECURE only for dev stage
+if os.environ.get("FLASK_ENV") == "production":
+    socketio = SocketIO(app, cors_allowed_origins=["https://joker.cse312.dev"])
+else:
+    socketio = SocketIO(app, cors_allowed_origins="*")
+
 #later for production
 # socketio = SocketIO(app, cors_allowed_origins=["https://yourdomain.com"])
 
@@ -83,4 +87,5 @@ def profile():
 
 
 if __name__ == "__main__":
-    socketio.run(app, host="0.0.0.0", port=8080, allow_unsafe_werkzeug=True)
+    if os.environ.get("FLASK_ENV") == "development":
+        socketio.run(app, host="0.0.0.0", port=8080, allow_unsafe_werkzeug=True)
