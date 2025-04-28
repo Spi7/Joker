@@ -91,7 +91,7 @@ def homepage():
 
 @app.route("/profile")
 def profile():
-    return render_template("profile.html")
+    return render_template("Profile.html")
 
 @app.route("/leaderboard")
 def leaderboard():
