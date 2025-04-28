@@ -9,7 +9,7 @@
 3. Before running the project, **create** a `.env` file in the root directory with the following variables:
 
    ```dotenv
-   FLASK_ENV=development  # or production
+   FLASK_ENV=development  # for local testing use development
    SECRET_KEY=your_secret_key_here
    DOCKER_DB=true
    ```
