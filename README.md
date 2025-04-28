@@ -38,6 +38,9 @@
      { "message": "pong from 312Joker backend!" }
      ```
 
+6. You can start *playing* by creating an **ACCOUNT**!
+   - Visit [http://localhost:8080](http://localhost:8080) in your browser.
+   - You should see our Login Page!
 ---
 
 ## 🎮 Game Rules
