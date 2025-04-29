@@ -106,8 +106,8 @@ function displayWinLeaderboard(players) {
 
     players.forEach((player, index) => {
         // Handle potential missing data with defaults
-        const wins = player.MatchWin || 0;
-        const matches = player.MatchPlayed || 0;
+        const wins = player.matches_won || 0;
+        const matches = player.matches_played || 0;
         const winRate = matches > 0
             ? ((wins / matches) * 100).toFixed(1) + '%'
             : '0%';

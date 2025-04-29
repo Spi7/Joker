@@ -59,7 +59,7 @@ def register():
 
         # Hash the password before storing
         hashed_password = hash_password(password)
-        UserInfo.insert_one({"username": username, "password": hashed_password, "user_id": user_id,"MatchPlayed":0,"MatchWin":0,"ImgUrl":"/static/images/Icon/defaultIcon.png"})
+        UserInfo.insert_one({"username": username, "password": hashed_password, "user_id": user_id,"matches_played":0,"matches_won":0,"ImgUrl":"/static/images/Icon/defaultIcon.png"})
         flash("Signup successful, please log in")
         return redirect(url_for("auth.login"))
 

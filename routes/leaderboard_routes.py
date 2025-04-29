@@ -10,13 +10,13 @@ def get_rankings():
     # Get top players by win count
     top_by_wins = list(UserInfo.find(
         {},
-        {"_id": 0, "username": 1, "user_id": 1, "MatchWin": 1, "MatchPlayed": 1, "ImgUrl": 1}
-    ).sort("MatchWin", -1).limit(10))
+        {"_id": 0, "username": 1, "user_id": 1, "matches_won": 1, "matches_played": 1, "ImgUrl": 1}
+    ).sort("matches_won", -1).limit(10))
 
     # Ensure all users have the required fields with defaults
     for user in top_by_wins:
-        user["MatchWin"] = user.get("MatchWin", 0)
-        user["MatchPlayed"] = user.get("MatchPlayed", 0)
+        user["matches_won"] = user.get("matches_won", 0)
+        user["matches_played"] = user.get("matches_played", 0)
         user["ImgUrl"] = user.get("ImgUrl", "/static/images/Icon/defaultIcon.png")
 
     # Calculate win streaks for all users
