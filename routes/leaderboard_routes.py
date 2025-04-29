@@ -25,21 +25,25 @@ def get_rankings():
 
     for user in all_users:
         user_id = user["user_id"]
-        matches = list(MatchHistory.find(
-            {"user_id": user_id},
-            {"_id": 0, "MatchResult": 1, "StartedTime": 1}
-        ).sort("StartedTime", 1))  # Sort by timestamp consistently
 
-        # Calculate max win streak - now using "MatchResult": "Win" matching Profile.js
+        # Get all matches involving this user (either as winner or loser)
+        matches = list(MatchHistory.find(
+            {"$or": [
+                {"winner.user_id": user_id},
+                {"losers.user_id": user_id}
+            ]}
+        ).sort("timestamp", 1))  # Sort by timestamp ascending
+
+        # Calculate max win streak
         max_streak = 0
         current_streak = 0
 
         for match in matches:
-            if match.get("MatchResult") == "Win":  # Using proper case and dict.get() for safety
+            if match.get("winner", {}).get("user_id") == user_id:
                 current_streak += 1
                 max_streak = max(max_streak, current_streak)
             else:
-                current_streak = 0
+                current_streak = 0  # Reset streak on loss
 
         # Add default ImgUrl if missing
         if "ImgUrl" not in user or not user["ImgUrl"]:
@@ -49,7 +53,8 @@ def get_rankings():
             "user_id": user["user_id"],
             "username": user["username"],
             "ImgUrl": user["ImgUrl"],
-            "max_win_streak": max_streak
+            "max_win_streak": max_streak,
+            "current_streak": current_streak if current_streak > 0 else 0
         })
 
     # Sort by max win streak
