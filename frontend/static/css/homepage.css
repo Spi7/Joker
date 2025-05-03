@@ -2,7 +2,7 @@
 body {
   min-height: 100vh;
   font-family: 'Segoe UI', sans-serif;
-  background-image: url('../images/Background.jpg');
+  background-image: url('../images/Background.png');
   background-size: cover;
   background-position: center;
   max-height: 100vh;
