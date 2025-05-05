@@ -117,7 +117,8 @@ function displayWinLeaderboard(players) {
             <tr>
                 <td class="rank">#${index + 1}</td>
                 <td class="player">
-                    <img src="${imgUrl}" alt="${player.username}" class="player-avatar">
+                    <img src="${imgUrl}" alt="${player.username}" class="player-avatar"
+                        onerror="this.onerror=null;this.src='/static/images/Icon/defaultIcon.png';">
                     <span>${player.username}</span>
                 </td>
                 <td>${wins}</td>
@@ -167,7 +168,8 @@ function displayStreakLeaderboard(players) {
             <tr>
                 <td class="rank">#${index + 1}</td>
                 <td class="player">
-                    <img src="${imgUrl}" alt="${player.username}" class="player-avatar">
+                    <img src="${imgUrl}" alt="${player.username}" class="player-avatar"
+                        onerror="this.onerror=null;this.src='/static/images/Icon/defaultIcon.png';">
                     <span>${player.username}</span>
                 </td>
                 <td>${player.max_win_streak || 0}</td>

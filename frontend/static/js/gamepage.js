@@ -198,7 +198,9 @@ function updatePlayerList(players, currentUserId, userMap) {
 
     const iconContainer = slot.querySelector(".player-icon");
     if (iconContainer) {
-      iconContainer.innerHTML = `<img src="${avatarUrl}" alt="avatar" style="width: 100%; height: 100%; border-radius: 50%;">`;
+      iconContainer.innerHTML = `<img src="${avatarUrl}" alt="avatar"
+        style="width: 100%; height: 100%; border-radius: 50%;"
+        onerror="this.onerror=null;this.src='/static/images/Icon/defaultIcon.png';">`;
     }
 
     const playerNameEl = slot.querySelector(".player-name");
