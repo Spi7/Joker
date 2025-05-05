@@ -235,3 +235,22 @@ document.addEventListener("DOMContentLoaded", async () => {
     document.getElementById("rules-modal").classList.add("hidden");
   });
 });
+
+function toggleMusic() {
+  const music = document.getElementById("bg-music");
+  const toggleBtn = document.getElementById("music-toggle");
+
+  if (!music || !toggleBtn) {
+    return;
+  }
+  if (music.paused) {
+    music.play().then(() => {
+      toggleBtn.textContent = "🎵 Music On";
+    }).catch((err) => {
+      console.error("Failed to play music:", err);
+    });
+  } else {
+    music.pause();
+    toggleBtn.textContent = "🔇 Music Off";
+  }
+}

@@ -46,6 +46,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             const data = await res.json();
             if (data.ImgUrl) {
                 avatarElement.src = data.ImgUrl;
+                avatarElement.onerror = () => {
+                  avatarElement.src = "/static/images/Icon/defaultIcon.png";
+                };
             } else {
                 console.error("Invalid response from server:", data);
             }
@@ -63,6 +66,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (userInfo.ImgUrl && userInfo.ImgUrl.startsWith("/static/images/Icon/")) {
             avatarElement.src = userInfo.ImgUrl;
+            avatarElement.onerror = () => {
+              avatarElement.src = "/static/images/Icon/defaultIcon.png";
+            };
         } else {
             avatarElement.src = "/static/images/Icon/defaultIcon.png";
         }
